@@ -1,12 +1,13 @@
 "use client";
 
-import { SignInEmailForm } from "@/components/signin-email-form";
+import { SignInEmailMagicLinkForm } from "@/components/signin-email-magiclink-form";
+import { SignInEmailOtpForm } from "@/components/signin-email-otp-form";
 import { SignInEmailPasswordForm } from "@/components/signin-email-password-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function SigninForm() {
   return (
-    <div className="mt-16 sm:mx-auto sm:max-w-sm px-4">
+    <div className="mt-16 px-4 sm:mx-auto sm:max-w-sm">
       <h2 className="text-center text-2xl font-bold tracking-tight text-primary">
         Sign in to your account
       </h2>
@@ -15,11 +16,11 @@ export function SigninForm() {
           <TabsTrigger value="magic-link">Magic Link</TabsTrigger>
           <TabsTrigger value="otp">OTP</TabsTrigger>
         </TabsList>
-        <TabsContent value="email-link">
-          <SignInEmailForm />
+        <TabsContent value="magic-link">
+          <SignInEmailMagicLinkForm />
         </TabsContent>
         <TabsContent value="otp">
-          <SignInEmailForm />
+          <SignInEmailOtpForm />
         </TabsContent>
       </Tabs>
       <div className="relative">

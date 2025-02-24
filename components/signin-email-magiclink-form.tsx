@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function SignInEmailForm() {
+export function SignInEmailMagicLinkForm() {
   return (
     <form className="grid gap-4" noValidate>
       <div className="grid gap-2">
