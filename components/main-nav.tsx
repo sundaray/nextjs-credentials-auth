@@ -14,7 +14,7 @@ type MainNavProps = {
 
 export function MainNav({ items }: MainNavProps) {
   return (
-    <div className="bg-accent flex h-14 items-center justify-between border-b px-4">
+    <div className="flex h-14 items-center justify-between bg-accent px-4">
       <nav>
         <ul className="flex space-x-6">
           {items.map((item) => (
