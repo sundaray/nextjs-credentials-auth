@@ -1,11 +1,15 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
+
 import { SignInEmailMagicLinkForm } from "@/components/signin-email-magiclink-form";
 import { SignInEmailOtpForm } from "@/components/signin-email-otp-form";
 import { SignInEmailPasswordForm } from "@/components/signin-email-password-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function SigninForm() {
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") || "/";
   return (
     <div className="mt-16 px-4 sm:mx-auto sm:max-w-sm">
       <h2 className="text-2xl font-semibold tracking-tight text-secondary-foreground">
@@ -35,7 +39,7 @@ export function SigninForm() {
             <span className="bg-background px-2">Or continue with</span>
           </div>
         </div>
-        <SignInEmailPasswordForm />
+        <SignInEmailPasswordForm next={next} />
       </div>
     </div>
   );

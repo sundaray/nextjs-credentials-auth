@@ -1,14 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useActionState } from "react";
 import Link from "next/link";
+import { useForm } from "@conform-to/react";
+import { parseWithZod } from "@conform-to/zod";
 
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/icons";
 
-export function SignInEmailPasswordForm() {
+import { signInWithEmailAndPassword } from "@/app/auth-actions";
+import { SignInEmailPasswordFormSchema } from "@/schema";
+
+export function SignInEmailPasswordForm({ next }: { next: string }) {
+  const boundSignInWithEmailAndPassword = signInWithEmailAndPassword.bind(
+    null,
+    next,
+  );
+
+  const [lastResult, formAction, isPending] = useActionState(
+    boundSignInWithEmailAndPassword,
+    undefined,
+  );
+
+  const [form, fields] = useForm({
+    lastResult,
+    onValidate({ formData }) {
+      return parseWithZod(formData, {
+        schema: SignInEmailPasswordFormSchema,
+      });
+    },
+  });
+
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   function togglePasswordVisibility() {
@@ -16,7 +40,12 @@ export function SignInEmailPasswordForm() {
   }
 
   return (
-    <form noValidate>
+    <form id={form.id} onSubmit={form.onSubmit} action={formAction} noValidate>
+      {form.errors && (
+        <div className="text-pretty py-2 text-sm text-red-600">
+          {form.errors}
+        </div>
+      )}
       <div className="grid gap-4">
         <div className="grid gap-2">
           <Label htmlFor="email" className="text-gray-700">
@@ -26,8 +55,10 @@ export function SignInEmailPasswordForm() {
             id="email"
             type="email"
             name="email"
+            defaultValue={lastResult?.initialValue?.email as string}
             placeholder="you@example.com"
           />
+          <div className="text-sm text-red-600">{fields.email.errors}</div>
         </div>
         <div className="grid gap-2">
           <div className="flex items-center justify-between">
@@ -48,6 +79,7 @@ export function SignInEmailPasswordForm() {
               id="password"
               type={isPasswordVisible ? "text" : "password"}
               name="password"
+              defaultValue={lastResult?.initialValue?.password as string}
             />
             <button
               type="button"
@@ -63,8 +95,18 @@ export function SignInEmailPasswordForm() {
               )}
             </button>
           </div>
+          <div className="text-sm text-red-600">{fields.password.errors}</div>
         </div>
-        <Button type="submit">Sign in</Button>
+        <Button type="submit" disabled={isPending}>
+          {isPending ? (
+            <>
+              <Icons.loader className="size-3 animate-spin" />
+              Signing in...
+            </>
+          ) : (
+            "Sign in"
+          )}
+        </Button>
       </div>
     </form>
   );
