@@ -26,6 +26,10 @@ export function SignInEmailPasswordForm({ next }: { next: string }) {
 
   const [form, fields] = useForm({
     lastResult,
+    // Validate when field loses focus
+    shouldValidate: "onBlur",
+    // Re-validate as user types
+    shouldRevalidate: "onInput",
     onValidate({ formData }) {
       return parseWithZod(formData, {
         schema: SignInEmailPasswordFormSchema,
@@ -58,7 +62,9 @@ export function SignInEmailPasswordForm({ next }: { next: string }) {
             defaultValue={lastResult?.initialValue?.email as string}
             placeholder="you@example.com"
           />
-          <div className="text-sm text-red-600">{fields.email.errors}</div>
+          <div className="duration-800 text-sm text-red-600 ease-in-out animate-in fade-in-0 slide-in-from-bottom-1">
+            {fields.email.errors}
+          </div>
         </div>
         <div className="grid gap-2">
           <div className="flex items-center justify-between">
@@ -95,7 +101,25 @@ export function SignInEmailPasswordForm({ next }: { next: string }) {
               )}
             </button>
           </div>
-          <div className="text-sm text-red-600">{fields.password.errors}</div>
+          {fields.password.errors && (
+            <div className="duration-800 text-sm text-red-600 ease-out animate-in fade-in-0 slide-in-from-bottom-1">
+              {fields.password.errors.length === 1 &&
+              fields.password.errors[0] === "Password is required" ? (
+                <p>Password is required</p>
+              ) : (
+                <>
+                  <p>Password must:</p>
+                  <ul className="ml-2">
+                    {fields.password.errors
+                      .filter((error) => error !== "Password is required")
+                      .map((error) => (
+                        <li key={error}>- {error}</li>
+                      ))}
+                  </ul>
+                </>
+              )}
+            </div>
+          )}
         </div>
         <Button type="submit" disabled={isPending}>
           {isPending ? (
