@@ -1,9 +1,11 @@
+"use server";
+
 import { redirect } from "next/navigation";
 import { parseWithZod } from "@conform-to/zod";
 import { isEmailVerified } from "@/lib/email-verification";
 import { sendVerificationEmail } from "@/lib/email-verification";
 import { isPasswordValid } from "@/lib/password";
-import { createSession } from "@/lib/session";
+import { createUserSession } from "@/lib/session";
 import { SignInEmailPasswordFormSchema } from "@/schema";
 
 /************************************************
@@ -33,7 +35,8 @@ export async function signInWithEmailAndPassword(
     if (emailVerified) {
       const { passwordValid } = await isPasswordValid(email, password);
       if (passwordValid) {
-        createSession(email);
+        const { userId, role } = await getUserData(email);
+        createUserSession(userId, email, role);
       } else {
         return submission.reply({
           formErrors: ["Incorrect email or password."],

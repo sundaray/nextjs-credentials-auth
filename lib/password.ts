@@ -1,3 +1,5 @@
+import "server-only";
+
 import { supabase } from "@/lib/supabase";
 import { verify } from "@node-rs/argon2";
 
