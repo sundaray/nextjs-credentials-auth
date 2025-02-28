@@ -1,7 +1,7 @@
 import "server-only";
 
 import { cookies } from "next/headers";
-import { base64url, EncryptJWT } from "jose";
+import { base64url, EncryptJWT, jwtDecrypt } from "jose";
 
 const key = process.env.JWT_ENCRYPTION_KEY ?? "";
 const secret = base64url.decode(key);
@@ -17,6 +17,21 @@ export async function encrypt(payload: any) {
     .setProtectedHeader({ alg: "dir", enc: "A128CBC-HS256" })
     .setExpirationTime("1hr")
     .encrypt(secret);
+}
+
+/************************************************
+ *
+ * Decrypt JWT
+ *
+ ************************************************/
+
+export async function decrypt(jwt: string) {
+  try {
+    const { payload } = await jwtDecrypt(jwt, secret);
+    return payload;
+  } catch (error) {
+    return null;
+  }
 }
 
 /************************************************
