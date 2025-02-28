@@ -1,7 +1,27 @@
 import "server-only";
 
 import { supabase } from "@/lib/supabase";
-import { verify } from "@node-rs/argon2";
+import { hash, verify } from "@node-rs/argon2";
+
+/**
+ *
+ * Hash user password
+ *
+ */
+export async function hashPassword(password: string): Promise<string> {
+  try {
+    return await hash(password);
+  } catch (error) {
+    console.error("Error hashing password:", error);
+    throw error;
+  }
+}
+
+/**
+ *
+ * Validate user password
+ *
+ */
 
 export async function isPasswordValid(email: string, password: string) {
   try {

@@ -50,15 +50,15 @@ export async function createUserSession(
  */
 export async function createEmailVerificationSession(
   email: string,
+  hashedPassword: string,
   token: string,
-  password: string,
 ) {
   try {
     // Encrypt the session data
     const sessionData = await encrypt({
       email,
+      hashedPassword,
       token,
-      password,
     });
 
     // Set the cookie
