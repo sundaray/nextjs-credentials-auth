@@ -40,6 +40,7 @@ export async function signInWithEmailAndPassword(
   const password = submission.value.password;
 
   let errorOccurred = false;
+  let needsEmailVerification = false;
 
   try {
     // Check if user's email has been verified
@@ -62,6 +63,8 @@ export async function signInWithEmailAndPassword(
         });
       }
     } else {
+      needsEmailVerification = true; // Set flag for unverified email
+
       // Create verification token
       const token = createEmailVerificationToken();
 
@@ -78,6 +81,7 @@ export async function signInWithEmailAndPassword(
       await sendVerificationEmail(email, url);
     }
   } catch (error) {
+    console.log("sign in error: ", error);
     errorOccurred = true;
 
     // Extract validated email and password
@@ -86,8 +90,12 @@ export async function signInWithEmailAndPassword(
     });
   } finally {
     if (!errorOccurred) {
-      // Redirect the user to the page they were originally trying to visit
-      redirect(next);
+      if (needsEmailVerification) {
+        redirect("/signin/verify-email");
+      } else {
+        // Redirect the user to the page they were originally trying to visit
+        redirect(next);
+      }
     }
   }
 }

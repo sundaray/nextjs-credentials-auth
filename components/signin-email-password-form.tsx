@@ -63,15 +63,13 @@ export function SignInEmailPasswordForm() {
         noValidate
       >
         {form.errors && (
-          <div className="text-pretty py-2 text-sm text-red-600">
+          <div className="duration-800 text-pretty py-4 text-sm text-red-600 ease-out animate-in fade-in-0 slide-in-from-bottom-1">
             {form.errors}
           </div>
         )}
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="email" className="text-gray-700">
-              Email
-            </Label>
+            <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
@@ -85,9 +83,7 @@ export function SignInEmailPasswordForm() {
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password" className="text-gray-700">
-                Password
-              </Label>
+              <Label htmlFor="password">Password</Label>
               <div className="text-sm">
                 <Link
                   href="/forgot-password"
