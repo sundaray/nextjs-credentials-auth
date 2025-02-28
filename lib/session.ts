@@ -21,7 +21,7 @@ export async function encrypt(payload: any) {
 
 /************************************************
  *
- * Create session
+ * Create user session
  *
  ************************************************/
 
@@ -30,15 +30,48 @@ export async function createUserSession(
   email: string,
   role: string,
 ) {
-  const encryptedUser = await encrypt({ userId, email, role });
+  const sessionData = await encrypt({ userId, email, role });
 
   const cookieStore = await cookies();
 
-  cookieStore.set("session", encryptedUser, {
+  cookieStore.set("user-session", sessionData, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     maxAge: 60 * 60, // 1 hour in seconds
     sameSite: "lax",
     path: "/",
   });
+}
+
+/**
+ *
+ * Create a session for email verification
+ *
+ */
+export async function createEmailVerificationSession(
+  email: string,
+  token: string,
+  password: string,
+) {
+  try {
+    // Encrypt the session data
+    const sessionData = await encrypt({
+      email,
+      token,
+      password,
+    });
+
+    // Set the cookie
+    const cookieStore = await cookies();
+    cookieStore.set("email-verification-session", sessionData, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60, // 1 hour in seconds
+      sameSite: "lax",
+      path: "/",
+    });
+  } catch (error) {
+    console.error("Error creating email verification session:", error);
+    throw error;
+  }
 }

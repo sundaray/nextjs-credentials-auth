@@ -3,9 +3,14 @@
 import { redirect } from "next/navigation";
 import { parseWithZod } from "@conform-to/zod";
 import { isEmailVerified } from "@/lib/email-verification";
-import { sendVerificationEmail } from "@/lib/email-verification";
 import { isPasswordValid } from "@/lib/password";
+import { getUserData } from "@/lib/get-user-data";
 import { createUserSession } from "@/lib/session";
+import {
+  createEmailVerificationToken,
+  createEmailVerificationURL,
+  sendVerificationEmail,
+} from "@/lib/email-verification";
 import { SignInEmailPasswordFormSchema } from "@/schema";
 
 /************************************************
@@ -36,14 +41,18 @@ export async function signInWithEmailAndPassword(
       const { passwordValid } = await isPasswordValid(email, password);
       if (passwordValid) {
         const { userId, role } = await getUserData(email);
-        createUserSession(userId, email, role);
+        await createUserSession(userId, email, role);
       } else {
         return submission.reply({
-          formErrors: ["Incorrect email or password."],
+          formErrors: ["Incorrect email or password"],
         });
       }
     } else {
-      sendVerificationEmail();
+      const token = createEmailVerificationToken();
+      const url = createEmailVerificationURL(token);
+      await sendVerificationEmail(url);
+      const hashedPassword = await hashPassword();
+      await createEmailVerificationSession(email, hashedPassword, token);
     }
   } catch (error) {
     errorOccurred = true;
