@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { parseWithZod } from "@conform-to/zod";
-import { checkEmailVerificationStatus } from "@/lib/email-verification";
+import { isEmailVerified } from "@/lib/email-verification";
 import { sendVerificationEmail } from "@/lib/email-verification";
-import { verifyPassword } from "@/lib/password";
+import { isPasswordValid } from "@/lib/password";
 import { createSession } from "@/lib/session";
 import { SignInEmailPasswordFormSchema } from "@/schema";
 
@@ -29,10 +29,10 @@ export async function signInWithEmailAndPassword(
   let errorOccurred = false;
 
   try {
-    const { emailVerified } = checkEmailVerificationStatus(email);
+    const { emailVerified } = await isEmailVerified(email);
     if (emailVerified) {
-      const { passwordVerified } = verifyPassword(password);
-      if (passwordVerified) {
+      const { passwordValid } = await isPasswordValid(email, password);
+      if (passwordValid) {
         createSession(email);
       } else {
         return submission.reply({
