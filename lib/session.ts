@@ -122,3 +122,76 @@ export async function updateEmailVerificationSession(
     throw error;
   }
 }
+
+/**
+ *
+ * Check if an email verification session exists
+ * Returns boolean indicating whether a session exists
+ *
+ */
+export async function doesEmailVerificationSessionExist(): Promise<{
+  sessionExists: boolean;
+}> {
+  try {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get("email-verification-session");
+
+    return { sessionExists: !!sessionCookie };
+  } catch (error) {
+    console.error("Error checking email verification session:", error);
+    throw error;
+  }
+}
+
+/**
+ * Delete the email verification session cookie
+ */
+export async function deleteEmailVerificationSession() {
+  try {
+    const cookieStore = await cookies();
+    cookieStore.delete("email-verification-session");
+  } catch (error) {
+    console.error("Error deleting email verification session:", error);
+    throw error;
+  }
+}
+
+type EmailVerificationSessionPayload = {
+  token: string;
+  email: string;
+  hashedPassword: string;
+};
+
+/**
+ *
+ * Retrieve and decrypt the email verification session data
+ * Returns an object with a payload property containing the decrypted session data
+ * or null if session doesn't exist or decryption fails
+ *
+ */
+export async function getEmailVerificationSessionPayload(): Promise<{
+  payload: EmailVerificationSessionPayload | null;
+}> {
+  try {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get("email-verification-session");
+
+    if (!sessionCookie) {
+      return { payload: null };
+    }
+
+    const decryptedPayload = await decrypt(sessionCookie.value);
+
+    if (decryptedPayload) {
+      return { payload: decryptedPayload as EmailVerificationSessionPayload };
+    } else {
+      return { payload: null };
+    }
+  } catch (error) {
+    console.error(
+      "Error retrieving email verification session payload:",
+      error,
+    );
+    return { payload: null };
+  }
+}

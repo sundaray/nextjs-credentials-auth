@@ -9,6 +9,7 @@ import {
   createUserSession,
   createEmailVerificationSession,
   updateEmailVerificationSession,
+  doesEmailVerificationSessionExist,
 } from "@/lib/session";
 import {
   createEmailVerificationToken,
@@ -16,7 +17,6 @@ import {
   sendVerificationEmail,
 } from "@/lib/email-verification";
 import { SignInEmailPasswordFormSchema } from "@/schema";
-import { doesEmailVerificationSessionExist } from "@/lib/does-email-verification-session-exist";
 
 /************************************************
  * Sign In With Email and Password
