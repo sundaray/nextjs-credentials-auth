@@ -31,8 +31,7 @@ export async function GET(request: NextRequest) {
 
     const role = assignUserRole(email);
 
-    const id = uuidv4();
-    await createUser(id, email, hashedPassword, role);
+    await createUser(email, hashedPassword, role);
 
     await deleteEmailVerificationSession();
 

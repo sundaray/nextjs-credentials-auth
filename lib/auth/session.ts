@@ -13,10 +13,16 @@ const secret = base64url.decode(key);
  ************************************************/
 
 export async function encrypt(payload: any) {
-  return await new EncryptJWT(payload)
-    .setProtectedHeader({ alg: "dir", enc: "A128CBC-HS256" })
-    .setExpirationTime("1hr")
-    .encrypt(secret);
+  try {
+    const encryptedJWT = await new EncryptJWT(payload)
+      .setProtectedHeader({ alg: "dir", enc: "A128CBC-HS256" })
+      .setExpirationTime("1hr")
+      .encrypt(secret);
+    return { encryptedJWT };
+  } catch (error) {
+    console.log("Failed to encrypt JWT: ", error);
+    return { error: "Failed to encrypt JWT." };
+  }
 }
 
 /************************************************
@@ -28,9 +34,10 @@ export async function encrypt(payload: any) {
 export async function decrypt(jwt: string) {
   try {
     const { payload } = await jwtDecrypt(jwt, secret);
-    return payload;
+    return { payload };
   } catch (error) {
-    throw Error("Failed to decrypt JWT");
+    console.log("Failed to decrypt JWT: ", error);
+    return { error: "Failed to decrypt JWT." };
   }
 }
 
@@ -45,7 +52,15 @@ export async function createUserSession(
   email: string,
   role: string,
 ) {
-  const sessionData = await encrypt({ userId, email, role });
+  const { encryptedJWT: sessionData, error } = await encrypt({
+    userId,
+    email,
+    role,
+  });
+
+  if (!sessionData || error) {
+    return { error };
+  }
 
   const cookieStore = await cookies();
 
@@ -68,28 +83,26 @@ export async function createEmailVerificationSession(
   hashedPassword: string,
   token: string,
 ) {
-  try {
-    // Encrypt the session data
-    const sessionData = await encrypt({
-      email,
-      hashedPassword,
-      token,
-    });
+  const { encryptedJWT: sessionData, error } = await encrypt({
+    email,
+    hashedPassword,
+    token,
+  });
 
-    // Set the cookie
-    const cookieStore = await cookies();
-    cookieStore.set("email-verification-session", sessionData, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60, // 1 hour in seconds
-      sameSite: "lax",
-      path: "/",
-    });
-  } catch (error) {
-    console.error("Error creating email verification session:", error);
-    throw error;
+  if (!sessionData || error) {
+    return { error };
   }
+
+  const cookieStore = await cookies();
+  cookieStore.set("email-verification-session", sessionData, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60, // 1 hour in seconds
+    sameSite: "lax",
+    path: "/",
+  });
 }
+
 /**
  *
  * Update an existing email verification session
@@ -100,27 +113,25 @@ export async function updateEmailVerificationSession(
   hashedPassword: string,
   token: string,
 ) {
-  try {
-    // Encrypt the session data
-    const sessionData = await encrypt({
-      email,
-      hashedPassword,
-      token,
-    });
+  const { encryptedJWT: sessionData, error } = await encrypt({
+    email,
+    hashedPassword,
+    token,
+  });
 
-    // Set the cookie
-    const cookieStore = await cookies();
-    cookieStore.set("email-verification-session", sessionData, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60, // 1 hour in seconds
-      sameSite: "lax",
-      path: "/",
-    });
-  } catch (error) {
-    console.error("Error creating email verification session:", error);
-    throw error;
+  if (!sessionData || error) {
+    return { error };
   }
+
+  const cookieStore = await cookies();
+
+  cookieStore.set("email-verification-session", sessionData, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60, // 1 hour in seconds
+    sameSite: "lax",
+    path: "/",
+  });
 }
 
 /**
@@ -139,7 +150,7 @@ export async function doesEmailVerificationSessionExist(): Promise<{
     return { sessionExists: !!sessionCookie };
   } catch (error) {
     console.error("Error checking email verification session:", error);
-    throw error;
+    return { error: "Failed to retrive email verification session cookie" };
   }
 }
 
@@ -151,8 +162,11 @@ export async function deleteEmailVerificationSession() {
     const cookieStore = await cookies();
     cookieStore.delete("email-verification-session");
   } catch (error) {
-    console.error("Error deleting email verification session:", error);
-    throw error;
+    console.error(
+      "Failed to delete email verification session cookie: ",
+      error,
+    );
+    return { error: "Failed to delete email verification session cookie." };
   }
 }
 
@@ -172,28 +186,20 @@ type SessionPayload = {
 export async function getEmailVerificationSessionPayload(): Promise<{
   payload: SessionPayload | null;
 }> {
-  try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("email-verification-session");
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get("email-verification-session");
 
-    if (!sessionCookie) {
-      return { payload: null };
-    }
-
-    const decryptedPayload = await decrypt(sessionCookie.value);
-
-    if (decryptedPayload) {
-      return { payload: decryptedPayload as SessionPayload };
-    } else {
-      return { payload: null };
-    }
-  } catch (error) {
-    console.error(
-      "Error retrieving email verification session payload:",
-      error,
-    );
-    return { payload: null };
+  if (!sessionCookie) {
+    return { error: "Failed to get email veriifcation session cookie." };
   }
+
+  const { payload, error } = await decrypt(sessionCookie.value);
+
+  if (!payload || error) {
+    return { error };
+  }
+
+  return { payload: payload as SessionPayload };
 }
 
 type User = {
@@ -202,18 +208,22 @@ type User = {
   role: string;
 };
 
+type Error = {
+  error: string;
+};
+
 export async function getUserSession(): Promise<{
-  user: User | null;
+  user: User | Error;
 }> {
-  try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("session");
-    if (!sessionCookie) {
-      throw Error("Failed to retrive user session cookie");
-    }
-    const decryptedPayload = await decrypt(sessionCookie.value);
-    return { user: decryptedPayload as User };
-  } catch (error) {
-    throw error;
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get("user-session");
+  if (!sessionCookie) {
+    return { error: "Failed to get user session cookie." };
   }
+  const { payload, error } = await decrypt(sessionCookie.value);
+
+  if (!payload || error) {
+    return { error };
+  }
+  return { user: payload as User };
 }
