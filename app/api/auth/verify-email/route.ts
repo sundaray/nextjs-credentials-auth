@@ -8,6 +8,7 @@ import {
   getEmailVerificationSessionPayload,
   deleteEmailVerificationSession,
 } from "@/lib/session";
+import { timingSafeCompare } from "@/lib/timing-safe-compare";
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
 
     const { email, hashedPassword, token: tokenFromSession } = payload;
 
-    if (tokenFromUrl !== tokenFromSession) {
+    if (!timingSafeCompare(tokenFromUrl, tokenFromSession)) {
       return NextResponse.redirect(authErrorUrl);
     }
 

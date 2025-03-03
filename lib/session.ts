@@ -30,7 +30,7 @@ export async function decrypt(jwt: string) {
     const { payload } = await jwtDecrypt(jwt, secret);
     return payload;
   } catch (error) {
-    return null;
+    throw Error("Failed to decrypt JWT");
   }
 }
 
@@ -156,7 +156,7 @@ export async function deleteEmailVerificationSession() {
   }
 }
 
-type EmailVerificationSessionPayload = {
+type SessionPayload = {
   token: string;
   email: string;
   hashedPassword: string;
@@ -170,7 +170,7 @@ type EmailVerificationSessionPayload = {
  *
  */
 export async function getEmailVerificationSessionPayload(): Promise<{
-  payload: EmailVerificationSessionPayload | null;
+  payload: SessionPayload | null;
 }> {
   try {
     const cookieStore = await cookies();
@@ -183,7 +183,7 @@ export async function getEmailVerificationSessionPayload(): Promise<{
     const decryptedPayload = await decrypt(sessionCookie.value);
 
     if (decryptedPayload) {
-      return { payload: decryptedPayload as EmailVerificationSessionPayload };
+      return { payload: decryptedPayload as SessionPayload };
     } else {
       return { payload: null };
     }
@@ -193,5 +193,27 @@ export async function getEmailVerificationSessionPayload(): Promise<{
       error,
     );
     return { payload: null };
+  }
+}
+
+type User = {
+  userId: string;
+  email: string;
+  role: string;
+};
+
+export async function getUserSession(): Promise<{
+  user: User | null;
+}> {
+  try {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get("session");
+    if (!sessionCookie) {
+      throw Error("Failed to retrive user session cookie");
+    }
+    const decryptedPayload = await decrypt(sessionCookie.value);
+    return { user: decryptedPayload as User };
+  } catch (error) {
+    throw error;
   }
 }
