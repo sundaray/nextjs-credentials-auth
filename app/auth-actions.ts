@@ -8,6 +8,7 @@ import { getUserData } from "@/lib/get-user-data";
 import {
   createUserSession,
   createEmailVerificationSession,
+  updateEmailVerificationSession,
 } from "@/lib/session";
 import {
   createEmailVerificationToken,
@@ -15,6 +16,7 @@ import {
   sendVerificationEmail,
 } from "@/lib/email-verification";
 import { SignInEmailPasswordFormSchema } from "@/schema";
+import { doesEmailVerificationSessionExist } from "@/lib/does-email-verification-session-exist";
 
 /************************************************
  * Sign In With Email and Password
@@ -43,48 +45,41 @@ export async function signInWithEmailAndPassword(
   let needsEmailVerification = false;
 
   try {
-    // Check if user's email has been verified
     const { emailVerified } = await isEmailVerified(email);
 
     if (emailVerified) {
-      // For verified users, validate their password
       const { passwordValid } = await isPasswordValid(email, password);
 
       if (passwordValid) {
-        // Retrieve additional user data needed for session
         const { userId, role } = await getUserData(email);
 
-        // Create authenticated user session
         await createUserSession(userId, email, role);
       } else {
-        // Return error for invalid credentials
         return submission.reply({
           formErrors: ["Incorrect email or password"],
         });
       }
     } else {
-      needsEmailVerification = true; // Set flag for unverified email
+      needsEmailVerification = true;
 
-      // Create verification token
       const token = createEmailVerificationToken();
 
-      // Generate verification URL
       const url = await createEmailVerificationURL(token);
 
-      // Hash the password from the form input
       const hashedPassword = await hashPassword(password);
 
-      // Store verification data in a session cookie
-      await createEmailVerificationSession(email, hashedPassword, token);
+      const { sessionExists } = await doesEmailVerificationSessionExist();
 
-      // Send verification email to the user
+      if (sessionExists) {
+        await updateEmailVerificationSession(email, hashedPassword, token);
+      } else {
+        await createEmailVerificationSession(email, hashedPassword, token);
+      }
       await sendVerificationEmail(email, url);
     }
   } catch (error) {
     console.log("sign in error: ", error);
     errorOccurred = true;
-
-    // Extract validated email and password
     return submission.reply({
       formErrors: ["Something went wrong. Please try again."],
     });
@@ -93,7 +88,6 @@ export async function signInWithEmailAndPassword(
       if (needsEmailVerification) {
         redirect("/signin/verify-email");
       } else {
-        // Redirect the user to the page they were originally trying to visit
         redirect(next);
       }
     }

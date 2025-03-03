@@ -60,10 +60,42 @@ export async function createUserSession(
 
 /**
  *
- * Create a session for email verification
+ * Create an email verification session
  *
  */
 export async function createEmailVerificationSession(
+  email: string,
+  hashedPassword: string,
+  token: string,
+) {
+  try {
+    // Encrypt the session data
+    const sessionData = await encrypt({
+      email,
+      hashedPassword,
+      token,
+    });
+
+    // Set the cookie
+    const cookieStore = await cookies();
+    cookieStore.set("email-verification-session", sessionData, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60, // 1 hour in seconds
+      sameSite: "lax",
+      path: "/",
+    });
+  } catch (error) {
+    console.error("Error creating email verification session:", error);
+    throw error;
+  }
+}
+/**
+ *
+ * Update an existing email verification session
+ *
+ */
+export async function updateEmailVerificationSession(
   email: string,
   hashedPassword: string,
   token: string,

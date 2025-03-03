@@ -35,12 +35,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(authErrorUrl);
     }
 
-    const id = uuidv4();
-
     // Assign user a role
     const role = assignUserRole(email);
 
     // Create a user record in the database
+    const id = uuidv4();
     await createUser(id, email, hashedPassword, role);
 
     // Delete email verification session
