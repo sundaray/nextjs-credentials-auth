@@ -2,15 +2,15 @@
 
 import { redirect } from "next/navigation";
 import { parseWithZod } from "@conform-to/zod";
-import { isEmailVerified } from "@/lib/email-verification";
-import { hashPassword, isPasswordValid } from "@/lib/password";
-import { getUserData } from "@/lib/get-user-data";
+import { verifyEmail } from "@/lib/auth/email-verification";
+import { hashPassword, verifyPassword } from "@/lib/auth/password";
+import { getUserData } from "@/lib/auth/user";
 import {
   createUserSession,
   createEmailVerificationSession,
   updateEmailVerificationSession,
   doesEmailVerificationSessionExist,
-} from "@/lib/session";
+} from "@/lib/auth/session";
 import {
   createEmailVerificationToken,
   createEmailVerificationURL,
@@ -48,7 +48,7 @@ export async function signInWithEmailAndPassword(
     const { emailVerified } = await isEmailVerified(email);
 
     if (emailVerified) {
-      const { passwordValid } = await isPasswordValid(email, password);
+      const { passwordVerified } = await verifyPassword(email, password);
 
       if (passwordValid) {
         const { userId, role } = await getUserData(email);

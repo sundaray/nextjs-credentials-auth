@@ -2,6 +2,7 @@ import "server-only";
 
 import { cookies } from "next/headers";
 import { base64url, EncryptJWT, jwtDecrypt } from "jose";
+import type { JWTPayload } from "jose";
 
 const key = process.env.JWT_ENCRYPTION_KEY ?? "";
 const secret = base64url.decode(key);
@@ -11,8 +12,9 @@ const secret = base64url.decode(key);
  * Encrypt payload
  *
  ************************************************/
+type EncryptResult = { encryptedJWT: string } | { error: string };
 
-export async function encrypt(payload: any) {
+export async function encrypt(payload: any): Promise<EncryptResult> {
   try {
     const encryptedJWT = await new EncryptJWT(payload)
       .setProtectedHeader({ alg: "dir", enc: "A128CBC-HS256" })
@@ -20,7 +22,6 @@ export async function encrypt(payload: any) {
       .encrypt(secret);
     return { encryptedJWT };
   } catch (error) {
-    console.log("Failed to encrypt JWT: ", error);
     return { error: "Failed to encrypt JWT." };
   }
 }
@@ -30,13 +31,17 @@ export async function encrypt(payload: any) {
  * Decrypt JWT
  *
  ************************************************/
+type DecryptResult<T extends JWTPayload = JWTPayload> =
+  | { payload: T }
+  | { error: string };
 
-export async function decrypt(jwt: string) {
+export async function decrypt<T extends JWTPayload>(
+  jwt: string,
+): Promise<DecryptResult<T>> {
   try {
     const { payload } = await jwtDecrypt(jwt, secret);
-    return { payload };
+    return { payload: payload as T };
   } catch (error) {
-    console.log("Failed to decrypt JWT: ", error);
     return { error: "Failed to decrypt JWT." };
   }
 }
@@ -52,155 +57,187 @@ export async function createUserSession(
   email: string,
   role: string,
 ) {
-  const { encryptedJWT: sessionData, error } = await encrypt({
+  const result = await encrypt({
     userId,
     email,
     role,
   });
 
-  if (!sessionData || error) {
-    return { error };
+  if ("error" in result) {
+    return { error: result.error };
   }
 
-  const cookieStore = await cookies();
+  const sessionData = result.encryptedJWT;
 
-  cookieStore.set("user-session", sessionData, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60, // 1 hour in seconds
-    sameSite: "lax",
-    path: "/",
-  });
+  try {
+    const cookieStore = await cookies();
+
+    cookieStore.set({
+      name: "user-session",
+      value: sessionData,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60, // 1 hour in seconds
+      sameSite: "lax",
+      path: "/",
+    });
+  } catch (error) {
+    return { error: "Failed to create user session." };
+  }
 }
 
-/**
+/************************************************
  *
- * Create an email verification session
+ * Create email verification session
  *
- */
+ ************************************************/
 export async function createEmailVerificationSession(
   email: string,
   hashedPassword: string,
   token: string,
 ) {
-  const { encryptedJWT: sessionData, error } = await encrypt({
+  const result = await encrypt({
     email,
     hashedPassword,
     token,
   });
 
-  if (!sessionData || error) {
-    return { error };
+  if ("error" in result) {
+    return { error: result.error };
   }
 
-  const cookieStore = await cookies();
-  cookieStore.set("email-verification-session", sessionData, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60, // 1 hour in seconds
-    sameSite: "lax",
-    path: "/",
-  });
+  const sessionData = result.encryptedJWT;
+
+  try {
+    const cookieStore = await cookies();
+    cookieStore.set({
+      name: "email-verification-session",
+      value: sessionData,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60, // 1 hour in seconds
+      sameSite: "lax",
+      path: "/",
+    });
+  } catch (error) {
+    return { error: "Failed to create email verification session." };
+  }
 }
 
-/**
+/************************************************
  *
- * Update an existing email verification session
+ * Update email verification session
  *
- */
+ ************************************************/
 export async function updateEmailVerificationSession(
   email: string,
   hashedPassword: string,
   token: string,
 ) {
-  const { encryptedJWT: sessionData, error } = await encrypt({
+  const result = await encrypt({
     email,
     hashedPassword,
     token,
   });
 
-  if (!sessionData || error) {
-    return { error };
+  if ("error" in result) {
+    return { error: result.error };
   }
 
-  const cookieStore = await cookies();
+  const sessionData = result.encryptedJWT;
+  try {
+    const cookieStore = await cookies();
 
-  cookieStore.set("email-verification-session", sessionData, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60, // 1 hour in seconds
-    sameSite: "lax",
-    path: "/",
-  });
+    cookieStore.set({
+      name: "email-verification-session",
+      value: sessionData,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60, // 1 hour in seconds
+      sameSite: "lax",
+      path: "/",
+    });
+  } catch (error) {
+    return { error: "Failed to update email verification session." };
+  }
 }
 
-/**
+/************************************************
  *
  * Check if an email verification session exists
- * Returns boolean indicating whether a session exists
  *
- */
-export async function doesEmailVerificationSessionExist(): Promise<{
-  sessionExists: boolean;
-}> {
+ ************************************************/
+
+type DoesEmailVerificationSessionExistResult =
+  | { sessionExists: boolean }
+  | { error: string };
+
+export async function doesEmailVerificationSessionExist(): Promise<DoesEmailVerificationSessionExistResult> {
   try {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("email-verification-session");
 
     return { sessionExists: !!sessionCookie };
   } catch (error) {
-    console.error("Error checking email verification session:", error);
     return { error: "Failed to retrive email verification session cookie" };
   }
 }
 
-/**
- * Delete the email verification session cookie
- */
+/************************************************
+ *
+ * Delete the email verification session
+ *
+ ************************************************/
+
 export async function deleteEmailVerificationSession() {
   try {
     const cookieStore = await cookies();
     cookieStore.delete("email-verification-session");
   } catch (error) {
-    console.error(
-      "Failed to delete email verification session cookie: ",
-      error,
-    );
-    return { error: "Failed to delete email verification session cookie." };
+    return { error: "Failed to delete email verification session." };
   }
 }
 
-type SessionPayload = {
+/************************************************
+ *
+ * Get the email verification session payload
+ *
+ ************************************************/
+type EmailVerificationSessionPayload = {
   token: string;
   email: string;
   hashedPassword: string;
 };
 
-/**
- *
- * Retrieve and decrypt the email verification session data
- * Returns an object with a payload property containing the decrypted session data
- * or null if session doesn't exist or decryption fails
- *
- */
-export async function getEmailVerificationSessionPayload(): Promise<{
-  payload: SessionPayload | null;
-}> {
+type GetEmailVerificationSessionPayloadResult =
+  | { payload: EmailVerificationSessionPayload }
+  | { error: string };
+
+export async function getEmailVerificationSessionPayload(): Promise<GetEmailVerificationSessionPayloadResult> {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("email-verification-session");
 
   if (!sessionCookie) {
-    return { error: "Failed to get email veriifcation session cookie." };
+    return { error: "Failed to get email veriifcation session." };
   }
 
-  const { payload, error } = await decrypt(sessionCookie.value);
+  const result = await decrypt<EmailVerificationSessionPayload>(
+    sessionCookie.value,
+  );
 
-  if (!payload || error) {
-    return { error };
+  if ("error" in result) {
+    return { error: result.error };
   }
 
-  return { payload: payload as SessionPayload };
+  const { payload } = result;
+  return { payload };
 }
+
+/************************************************
+ *
+ * Get user session
+ *
+ ************************************************/
 
 type User = {
   userId: string;
@@ -208,22 +245,22 @@ type User = {
   role: string;
 };
 
-type Error = {
-  error: string;
-};
+type GetUserSessionResult = { user: User } | { error: string };
 
-export async function getUserSession(): Promise<{
-  user: User | Error;
-}> {
+export async function getUserSession(): Promise<GetUserSessionResult> {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("user-session");
-  if (!sessionCookie) {
-    return { error: "Failed to get user session cookie." };
-  }
-  const { payload, error } = await decrypt(sessionCookie.value);
 
-  if (!payload || error) {
-    return { error };
+  if (!sessionCookie) {
+    return { error: "Failed to get user session." };
   }
-  return { user: payload as User };
+  const result = await decrypt<User>(sessionCookie.value);
+
+  if ("error" in result) {
+    return { error: result.error };
+  }
+
+  const { payload } = result;
+
+  return { user: payload };
 }

@@ -28,23 +28,22 @@ export async function hashPassword(
  *
  ************************************************/
 
-type VerifyPasswordResult = { verified: boolean } | { error: string };
+type VerifyPasswordResult = { passwordVerified: boolean } | { error: string };
 
 export async function verifyPassword(
   email: string,
   password: string,
 ): Promise<VerifyPasswordResult> {
-  const response = await getUserPassword(email);
+  const result = await getUserPassword(email);
 
-  if ("error" in response) {
-    return { error: response.error };
+  if ("error" in result) {
+    return { error: result.error };
   }
 
   try {
-    const verified = await verify(response.hashedPassword, password);
-    return { verified };
+    const passwordVerified = await verify(result.hashedPassword, password);
+    return { passwordVerified };
   } catch (error) {
-    console.error("Failed to verify password:", error);
     return { error: "Failed to verify password." };
   }
 }
