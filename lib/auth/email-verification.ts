@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
  * Checks if a user's email is verified in the database
  *
  */
-export async function verifyEmail(email: string) {
+export async function isEmailVerified(email: string) {
   const { data, error } = await supabase
     .from("users")
     .select("emailVerified")

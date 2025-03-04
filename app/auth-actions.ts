@@ -2,9 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { parseWithZod } from "@conform-to/zod";
-import { verifyEmail } from "@/lib/auth/email-verification";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
-import { getUserData } from "@/lib/auth/user";
+import { getUserIdAndRole } from "@/lib/auth/user";
 import {
   createUserSession,
   createEmailVerificationSession,
@@ -12,10 +11,11 @@ import {
   doesEmailVerificationSessionExist,
 } from "@/lib/auth/session";
 import {
+  isEmailVerified,
   createEmailVerificationToken,
   createEmailVerificationURL,
   sendVerificationEmail,
-} from "@/lib/email-verification";
+} from "@/lib/auth/email-verification";
 import { SignInEmailPasswordFormSchema } from "@/schema";
 
 /************************************************
@@ -44,52 +44,44 @@ export async function signInWithEmailAndPassword(
   let errorOccurred = false;
   let needsEmailVerification = false;
 
-  try {
-    const { emailVerified } = await isEmailVerified(email);
+  const isEmailVerifiedResult = await isEmailVerified(email);
 
-    if (emailVerified) {
-      const { passwordVerified } = await verifyPassword(email, password);
+  if ("error" in isEmailVerifiedResult) {
+    const result = createEmailVerificationToken();
 
-      if (passwordValid) {
-        const { userId, role } = await getUserData(email);
+    const result = await createEmailVerificationURL(token);
 
-        await createUserSession(userId, email, role);
-      } else {
-        return submission.reply({
-          formErrors: ["Incorrect email or password"],
-        });
-      }
+    const result = await hashPassword(password);
+
+    const result = await doesEmailVerificationSessionExist();
+
+    if (sessionExists) {
+      await updateEmailVerificationSession(email, hashedPassword, token);
     } else {
-      needsEmailVerification = true;
-
-      const token = createEmailVerificationToken();
-
-      const url = await createEmailVerificationURL(token);
-
-      const hashedPassword = await hashPassword(password);
-
-      const { sessionExists } = await doesEmailVerificationSessionExist();
-
-      if (sessionExists) {
-        await updateEmailVerificationSession(email, hashedPassword, token);
-      } else {
-        await createEmailVerificationSession(email, hashedPassword, token);
-      }
-      await sendVerificationEmail(email, url);
+      await createEmailVerificationSession(email, hashedPassword, token);
     }
-  } catch (error) {
-    console.log("sign in error: ", error);
-    errorOccurred = true;
+    await sendVerificationEmail(email, url);
+  // Verify password
+  const verifyPasswordResult = await verifyPassword(email, password);
+
+  if ("error" in verifyPasswordResult) {
     return submission.reply({
-      formErrors: ["Something went wrong. Please try again."],
+      formErrors: ["Incorrect email or password."],
     });
-  } finally {
-    if (!errorOccurred) {
-      if (needsEmailVerification) {
-        redirect("/signin/verify-email");
-      } else {
-        redirect(next);
-      }
-    }
   }
+
+  // Get user id and role
+  const result = await getUserIdAndRole(email);
+
+  if ("error" in result) {
+    return submission.reply({
+      formErrors: [`${result.error} Please try again.`],
+    });
+  }
+
+  const result = await createUserSession(
+    result.userId,
+    result.email,
+    result.role,
+  );
 }

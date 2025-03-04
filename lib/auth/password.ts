@@ -17,7 +17,6 @@ export async function hashPassword(
     const hashedPassword = await hash(password);
     return { hashedPassword };
   } catch (error) {
-    console.error("Failed to hash password:", error);
     return { error: "Failed to hash password." };
   }
 }
