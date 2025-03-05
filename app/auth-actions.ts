@@ -6,6 +6,7 @@ import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { getUserIdAndRole } from "@/lib/auth/user";
 import {
   createUserSession,
+  deleteUserSession,
   createEmailVerificationSession,
   updateEmailVerificationSession,
   doesEmailVerificationSessionExist,
@@ -101,4 +102,13 @@ export async function signInWithEmailAndPassword(
       }
     }
   }
+}
+
+/************************************************
+ * Sign out
+ ************************************************/
+
+export async function signOut() {
+  await deleteUserSession();
+  redirect("/");
 }

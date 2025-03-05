@@ -226,3 +226,18 @@ export async function getUserSession(): Promise<{ user: User | null }> {
     throw new Error("Failed to decrypt user session");
   }
 }
+
+/************************************************
+ *
+ * Delete user session
+ *
+ ************************************************/
+
+export async function deleteUserSession() {
+  try {
+    const cookieStore = await cookies();
+    cookieStore.delete("user-session");
+  } catch (error) {
+    throw Error("Failed to delete email verification session.");
+  }
+}

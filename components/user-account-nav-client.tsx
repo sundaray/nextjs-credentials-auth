@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Icons } from "@/components/icons";
+import { signOut } from "@/app/auth-actions";
 
 type UserAccountNavClientProps = {
   user: User;
@@ -24,6 +25,19 @@ export function UserAccountNavClient({ user }: UserAccountNavClientProps) {
   function handleOpenChange(open: boolean) {
     if (isSigningOut) return;
     setIsOpen(open);
+  }
+
+  // Handle the sign out process
+  async function handleSignOut() {
+    try {
+      setIsSigningOut(true);
+      await signOut();
+    } catch (error) {
+      console.error("Unable to sign out:", error);
+    } finally {
+      setIsSigningOut(false);
+      setIsOpen(false);
+    }
   }
 
   return (
@@ -49,7 +63,7 @@ export function UserAccountNavClient({ user }: UserAccountNavClientProps) {
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="cursor-pointer">
-          <button className="flex w-full items-center">
+          <button onClick={handleSignOut} className="flex w-full items-center">
             {isSigningOut ? (
               <>
                 <Icons.loader className="mr-2 size-3 animate-spin" />
