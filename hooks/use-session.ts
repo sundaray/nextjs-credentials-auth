@@ -23,10 +23,8 @@ export function useSession() {
         setUser(user);
       } catch (error) {
         if (error instanceof Error) {
-          console.log("Failed to fetch session: ", error.message);
           setError(error);
         } else {
-          console.log("Unknown error:", error);
           setError(Error("An unknown error occurred"));
         }
       } finally {

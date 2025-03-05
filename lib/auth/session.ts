@@ -46,13 +46,13 @@ export async function decrypt<T extends JWTPayload>(jwt: string): Promise<T> {
  ************************************************/
 
 export async function createUserSession(
-  userId: string,
+  id: string,
   email: string,
   role: string,
 ) {
   try {
     const sessionData = await encrypt({
-      userId,
+      id,
       email,
       role,
     });
@@ -68,6 +68,8 @@ export async function createUserSession(
       sameSite: "lax",
       path: "/",
     });
+
+    console.log("User session created");
   } catch (error) {
     throw new Error("Failed to create user session.");
   }
@@ -204,21 +206,23 @@ export async function getEmailVerificationSessionPayload(): Promise<EmailVerific
  ************************************************/
 
 type User = {
-  userId: string;
+  id: string;
   email: string;
   role: string;
 };
 
-export async function getUserSession(): Promise<User> {
+export async function getUserSession(): Promise<{ user: User | null }> {
   try {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("user-session");
 
     if (!sessionCookie) {
-      throw new Error("Failed to get user session");
+      return { user: null };
     }
-    return await decrypt<User>(sessionCookie.value);
+
+    const user = await decrypt<User>(sessionCookie.value);
+    return { user };
   } catch (error) {
-    throw Error("Failed to get user session");
+    throw new Error("Failed to decrypt user session");
   }
 }

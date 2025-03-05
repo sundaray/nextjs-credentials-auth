@@ -15,6 +15,8 @@ type User = {
   role: string;
 };
 
+import { v4 as uuidv4 } from "uuid";
+
 export async function createUser(
   email: string,
   hashedPassword: string,
@@ -24,9 +26,11 @@ export async function createUser(
     const { data, error } = await supabase
       .from("users")
       .insert({
+        id: uuidv4(),
         email,
         password: hashedPassword,
         role,
+        emailVerified: true,
       })
       .select("id, email, role")
       .single();

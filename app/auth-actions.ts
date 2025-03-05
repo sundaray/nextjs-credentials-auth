@@ -47,13 +47,19 @@ export async function signInWithEmailAndPassword(
   try {
     const emailVerified = await isEmailVerified(email);
 
+    console.log("Server Action Email Verified: ", emailVerified);
+
     if (emailVerified) {
       const passwordVerified = await verifyPassword(email, password);
+
+      console.log("Server Action Password Verified: ", passwordVerified);
+      console.log(typeof passwordVerified);
 
       if (passwordVerified) {
         const { id, role } = await getUserIdAndRole(email);
         await createUserSession(id, email, role);
       } else {
+        errorOccurred = true;
         return submission.reply({
           formErrors: ["Incorrect email or password."],
         });

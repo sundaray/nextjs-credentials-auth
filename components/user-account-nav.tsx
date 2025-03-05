@@ -1,10 +1,11 @@
 import React from "react";
 import Link from "next/link";
+import { getUserSession } from "@/lib/auth/session";
 
 import { UserAccountNavClient } from "@/components/user-account-nav-client";
 
 export async function UserAccountNav() {
-  const user = null;
+  const { user } = await getUserSession();
 
   if (!user) {
     return (
