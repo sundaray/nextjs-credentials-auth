@@ -44,44 +44,55 @@ export async function signInWithEmailAndPassword(
   let errorOccurred = false;
   let needsEmailVerification = false;
 
-  const isEmailVerifiedResult = await isEmailVerified(email);
+  try {
+    const emailVerified = await isEmailVerified(email);
 
-  if ("error" in isEmailVerifiedResult) {
-    const result = createEmailVerificationToken();
+    if (emailVerified) {
+      const passwordVerified = await verifyPassword(email, password);
 
-    const result = await createEmailVerificationURL(token);
-
-    const result = await hashPassword(password);
-
-    const result = await doesEmailVerificationSessionExist();
-
-    if (sessionExists) {
-      await updateEmailVerificationSession(email, hashedPassword, token);
+      if (passwordVerified) {
+        const { id, role } = await getUserIdAndRole(email);
+        await createUserSession(id, email, role);
+      } else {
+        return submission.reply({
+          formErrors: ["Incorrect email or password."],
+        });
+      }
     } else {
-      await createEmailVerificationSession(email, hashedPassword, token);
+      needsEmailVerification = true;
+
+      const token = createEmailVerificationToken();
+
+      const url = createEmailVerificationURL(token);
+
+      const hashedPassword = await hashPassword(password);
+
+      const sessionExists = await doesEmailVerificationSessionExist();
+
+      if (sessionExists) {
+        await updateEmailVerificationSession(email, hashedPassword, token);
+      } else {
+        await createEmailVerificationSession(email, hashedPassword, token);
+      }
+      await sendVerificationEmail(email, url);
     }
-    await sendVerificationEmail(email, url);
-  // Verify password
-  const verifyPasswordResult = await verifyPassword(email, password);
-
-  if ("error" in verifyPasswordResult) {
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(`[signInWithEmailAndPassword] error: `, error.message);
+    } else {
+      console.error(`[signInWithEmailAndPassword] error: `, error);
+    }
+    errorOccurred = true;
     return submission.reply({
-      formErrors: ["Incorrect email or password."],
+      formErrors: ["Something went wrong. Please try again."],
     });
+  } finally {
+    if (!errorOccurred) {
+      if (needsEmailVerification) {
+        redirect("/signin/verify-email");
+      } else {
+        redirect(next);
+      }
+    }
   }
-
-  // Get user id and role
-  const result = await getUserIdAndRole(email);
-
-  if ("error" in result) {
-    return submission.reply({
-      formErrors: [`${result.error} Please try again.`],
-    });
-  }
-
-  const result = await createUserSession(
-    result.userId,
-    result.email,
-    result.role,
-  );
 }

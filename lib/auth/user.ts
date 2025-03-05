@@ -14,29 +14,32 @@ type User = {
   role: string;
 };
 
-type CreateUserResult = { user: User } | { error: string };
-
 export async function createUser(
   email: string,
   hashedPassword: string,
   role: string,
-): Promise<CreateUserResult> {
-  const { data, error } = await supabase
-    .from("users")
-    .insert({
-      email,
-      hashedPassword,
-      role,
-    })
-    .select("id, email, role")
-    .single();
+): Promise<User> {
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .insert({
+        email,
+        password: hashedPassword,
+        role,
+      })
+      .select("id, email, role")
+      .single();
 
-  if (error) {
-    console.error("Failed to create user: ", error);
-    return { error: "Failed to create user." };
+    if (!data || error) {
+      console.error(`[createUser] error: `, error);
+      throw new Error("Failed to create user.");
+    }
+    return data;
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : `Unknown error: ${error}`;
+    throw new Error(message);
   }
-
-  return { user: data };
 }
 
 /************************************************
@@ -45,23 +48,25 @@ export async function createUser(
  *
  ************************************************/
 
-type GetUserPasswordResult = { hashedPassword: string } | { error: string };
+export async function getUserPassword(email: string): Promise<string> {
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .select("password")
+      .eq("email", email)
+      .single();
 
-export async function getUserPassword(
-  email: string,
-): Promise<GetUserPasswordResult> {
-  const { data, error } = await supabase
-    .from("users")
-    .select("password")
-    .eq("email", email)
-    .single();
+    if (!data || error) {
+      console.error(`[getUserPassword] error: `, error);
+      throw new Error("Failed to get user password.");
+    }
 
-  if (error) {
-    console.error("Failed to get user password: ", error);
-    return { error: "Failed to get user password." };
+    return data.password;
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : `Unknown error: ${error}`;
+    throw new Error(message);
   }
-
-  return { hashedPassword: data.password };
 }
 
 /************************************************
@@ -70,26 +75,27 @@ export async function getUserPassword(
  *
  ************************************************/
 
-type GetUserIdAndRoleResult = { id: string; role: string } | { error: string };
-
 export async function getUserIdAndRole(
   email: string,
-): Promise<GetUserIdAndRoleResult> {
-  const { data, error } = await supabase
-    .from("users")
-    .select("id, role")
-    .eq("email", email)
-    .single();
+): Promise<{ id: string; role: string }> {
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .select("id, role")
+      .eq("email", email)
+      .single();
 
-  if (error) {
-    console.error("Failed to get user id and role: ", error);
-    return { error: "Failed to get user id and role." };
+    if (!data || error) {
+      console.error(`[getUserIdAndRole] error: `, error);
+      throw new Error("Failed to get user id and role.");
+    }
+
+    return data;
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : `Unknown error: ${error}`;
+    throw new Error(message);
   }
-
-  return {
-    id: data.id,
-    role: data.role,
-  };
 }
 
 /************************************************
@@ -98,7 +104,7 @@ export async function getUserIdAndRole(
  *
  ************************************************/
 
-export type UserRole = "admin" | "user";
+type UserRole = "admin" | "user";
 
 const ADMIN_EMAILS = ["rawgrittt@gmail.com"];
 

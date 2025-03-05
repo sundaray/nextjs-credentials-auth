@@ -8,16 +8,12 @@ import { getUserPassword } from "@/lib/auth/user";
  * Hash password
  *
  ************************************************/
-type HashPasswordResult = { hashedPassword: string } | { error: string };
-
-export async function hashPassword(
-  password: string,
-): Promise<HashPasswordResult> {
+export async function hashPassword(password: string): Promise<string> {
   try {
-    const hashedPassword = await hash(password);
-    return { hashedPassword };
+    return await hash(password);
   } catch (error) {
-    return { error: "Failed to hash password." };
+    console.error(`[hashPassword] error: `, error);
+    throw new Error("Failed to hash password.");
   }
 }
 
@@ -27,22 +23,16 @@ export async function hashPassword(
  *
  ************************************************/
 
-type VerifyPasswordResult = { passwordVerified: boolean } | { error: string };
-
 export async function verifyPassword(
   email: string,
   password: string,
-): Promise<VerifyPasswordResult> {
-  const result = await getUserPassword(email);
-
-  if ("error" in result) {
-    return { error: result.error };
-  }
-
+): Promise<boolean> {
   try {
-    const passwordVerified = await verify(result.hashedPassword, password);
-    return { passwordVerified };
+    const hashedPassword = await getUserPassword(email);
+    return await verify(hashedPassword, password);
   } catch (error) {
-    return { error: "Failed to verify password." };
+    const message =
+      error instanceof Error ? error.message : `Unknown error: ${error}`;
+    throw new Error(message);
   }
 }

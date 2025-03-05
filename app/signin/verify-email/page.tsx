@@ -9,7 +9,7 @@ export default function VerifyEmail() {
         Verify your email
       </h2>
       <p className="mb-4 text-pretty text-sm text-muted-foreground">
-        We&apos;ve sent you an email verification link
+        We&apos;ve sent you a verification link.
       </p>
       <Link
         href="/signin"

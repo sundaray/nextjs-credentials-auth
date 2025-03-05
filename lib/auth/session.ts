@@ -12,17 +12,15 @@ const secret = base64url.decode(key);
  * Encrypt payload
  *
  ************************************************/
-type EncryptResult = { encryptedJWT: string } | { error: string };
 
-export async function encrypt(payload: any): Promise<EncryptResult> {
+export async function encrypt(payload: any): Promise<string> {
   try {
-    const encryptedJWT = await new EncryptJWT(payload)
+    return await new EncryptJWT(payload)
       .setProtectedHeader({ alg: "dir", enc: "A128CBC-HS256" })
       .setExpirationTime("1hr")
       .encrypt(secret);
-    return { encryptedJWT };
   } catch (error) {
-    return { error: "Failed to encrypt JWT." };
+    throw new Error("Failed to encrypt payload.");
   }
 }
 
@@ -31,18 +29,13 @@ export async function encrypt(payload: any): Promise<EncryptResult> {
  * Decrypt JWT
  *
  ************************************************/
-type DecryptResult<T extends JWTPayload = JWTPayload> =
-  | { payload: T }
-  | { error: string };
 
-export async function decrypt<T extends JWTPayload>(
-  jwt: string,
-): Promise<DecryptResult<T>> {
+export async function decrypt<T extends JWTPayload>(jwt: string): Promise<T> {
   try {
     const { payload } = await jwtDecrypt(jwt, secret);
-    return { payload: payload as T };
+    return payload as T;
   } catch (error) {
-    return { error: "Failed to decrypt JWT." };
+    throw new Error("Failed to decrypt JWT.");
   }
 }
 
@@ -57,19 +50,13 @@ export async function createUserSession(
   email: string,
   role: string,
 ) {
-  const result = await encrypt({
-    userId,
-    email,
-    role,
-  });
-
-  if ("error" in result) {
-    return { error: result.error };
-  }
-
-  const sessionData = result.encryptedJWT;
-
   try {
+    const sessionData = await encrypt({
+      userId,
+      email,
+      role,
+    });
+
     const cookieStore = await cookies();
 
     cookieStore.set({
@@ -82,7 +69,7 @@ export async function createUserSession(
       path: "/",
     });
   } catch (error) {
-    return { error: "Failed to create user session." };
+    throw new Error("Failed to create user session.");
   }
 }
 
@@ -96,20 +83,15 @@ export async function createEmailVerificationSession(
   hashedPassword: string,
   token: string,
 ) {
-  const result = await encrypt({
-    email,
-    hashedPassword,
-    token,
-  });
-
-  if ("error" in result) {
-    return { error: result.error };
-  }
-
-  const sessionData = result.encryptedJWT;
-
   try {
+    const sessionData = await encrypt({
+      email,
+      hashedPassword,
+      token,
+    });
+
     const cookieStore = await cookies();
+
     cookieStore.set({
       name: "email-verification-session",
       value: sessionData,
@@ -120,7 +102,7 @@ export async function createEmailVerificationSession(
       path: "/",
     });
   } catch (error) {
-    return { error: "Failed to create email verification session." };
+    throw new Error("Failed to create email verification session.");
   }
 }
 
@@ -134,18 +116,13 @@ export async function updateEmailVerificationSession(
   hashedPassword: string,
   token: string,
 ) {
-  const result = await encrypt({
-    email,
-    hashedPassword,
-    token,
-  });
-
-  if ("error" in result) {
-    return { error: result.error };
-  }
-
-  const sessionData = result.encryptedJWT;
   try {
+    const sessionData = await encrypt({
+      email,
+      hashedPassword,
+      token,
+    });
+
     const cookieStore = await cookies();
 
     cookieStore.set({
@@ -158,7 +135,7 @@ export async function updateEmailVerificationSession(
       path: "/",
     });
   } catch (error) {
-    return { error: "Failed to update email verification session." };
+    throw Error("Failed to update email verification session.");
   }
 }
 
@@ -168,18 +145,14 @@ export async function updateEmailVerificationSession(
  *
  ************************************************/
 
-type DoesEmailVerificationSessionExistResult =
-  | { sessionExists: boolean }
-  | { error: string };
-
-export async function doesEmailVerificationSessionExist(): Promise<DoesEmailVerificationSessionExistResult> {
+export async function doesEmailVerificationSessionExist(): Promise<boolean> {
   try {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("email-verification-session");
 
-    return { sessionExists: !!sessionCookie };
+    return !!sessionCookie;
   } catch (error) {
-    return { error: "Failed to retrive email verification session cookie" };
+    throw Error("Failed to check email verification session");
   }
 }
 
@@ -194,7 +167,7 @@ export async function deleteEmailVerificationSession() {
     const cookieStore = await cookies();
     cookieStore.delete("email-verification-session");
   } catch (error) {
-    return { error: "Failed to delete email verification session." };
+    throw Error("Failed to delete email verification session.");
   }
 }
 
@@ -209,28 +182,19 @@ type EmailVerificationSessionPayload = {
   hashedPassword: string;
 };
 
-type GetEmailVerificationSessionPayloadResult =
-  | { payload: EmailVerificationSessionPayload }
-  | { error: string };
+export async function getEmailVerificationSessionPayload(): Promise<EmailVerificationSessionPayload> {
+  try {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get("email-verification-session");
 
-export async function getEmailVerificationSessionPayload(): Promise<GetEmailVerificationSessionPayloadResult> {
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("email-verification-session");
+    if (!sessionCookie) {
+      throw new Error("Failed to get email verification session");
+    }
 
-  if (!sessionCookie) {
-    return { error: "Failed to get email veriifcation session." };
+    return await decrypt<EmailVerificationSessionPayload>(sessionCookie.value);
+  } catch (error) {
+    throw Error("Failed to get email verification session payload");
   }
-
-  const result = await decrypt<EmailVerificationSessionPayload>(
-    sessionCookie.value,
-  );
-
-  if ("error" in result) {
-    return { error: result.error };
-  }
-
-  const { payload } = result;
-  return { payload };
 }
 
 /************************************************
@@ -245,22 +209,16 @@ type User = {
   role: string;
 };
 
-type GetUserSessionResult = { user: User } | { error: string };
+export async function getUserSession(): Promise<User> {
+  try {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get("user-session");
 
-export async function getUserSession(): Promise<GetUserSessionResult> {
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("user-session");
-
-  if (!sessionCookie) {
-    return { error: "Failed to get user session." };
+    if (!sessionCookie) {
+      throw new Error("Failed to get user session");
+    }
+    return await decrypt<User>(sessionCookie.value);
+  } catch (error) {
+    throw Error("Failed to get user session");
   }
-  const result = await decrypt<User>(sessionCookie.value);
-
-  if ("error" in result) {
-    return { error: result.error };
-  }
-
-  const { payload } = result;
-
-  return { user: payload };
 }
