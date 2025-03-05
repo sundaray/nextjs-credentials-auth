@@ -178,13 +178,13 @@ export async function deleteEmailVerificationSession() {
  * Get the email verification session payload
  *
  ************************************************/
-type EmailVerificationSessionPayload = {
+type EmailVerificationSession = {
   token: string;
   email: string;
   hashedPassword: string;
 };
 
-export async function getEmailVerificationSessionPayload(): Promise<EmailVerificationSessionPayload> {
+export async function getEmailVerificationSession(): Promise<EmailVerificationSession> {
   try {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("email-verification-session");
@@ -193,7 +193,7 @@ export async function getEmailVerificationSessionPayload(): Promise<EmailVerific
       throw new Error("Failed to get email verification session");
     }
 
-    return await decrypt<EmailVerificationSessionPayload>(sessionCookie.value);
+    return await decrypt<EmailVerificationSession>(sessionCookie.value);
   } catch (error) {
     throw Error("Failed to get email verification session payload");
   }

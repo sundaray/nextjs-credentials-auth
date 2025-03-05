@@ -28,17 +28,22 @@ export function UserAccountNavClient({ user }: UserAccountNavClientProps) {
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={handleOpenChange}>
-      <DropdownMenuTrigger className="flex items-center space-x-1 focus:outline-none">
-        <span className="text-sm font-medium text-zinc-400">My Account</span>
+      <DropdownMenuTrigger className="flex items-center space-x-1">
+        <span className="text-sm font-medium text-muted-foreground">
+          My Account
+        </span>
         <Icons.chevronDown className="size-4 text-muted-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <div className="flex items-center justify-start gap-2 p-2">
           <div className="flex flex-col space-y-1 leading-none">
             {user.email && (
-              <p className="w-[200px] truncate text-sm text-muted-foreground">
-                {user.email}
-              </p>
+              <>
+                <p className="text-xs text-muted-foreground">signed in as</p>
+                <p className="w-[200px] truncate text-sm text-secondary-foreground">
+                  {user.email}
+                </p>
+              </>
             )}
           </div>
         </div>
@@ -47,8 +52,8 @@ export function UserAccountNavClient({ user }: UserAccountNavClientProps) {
           <button className="flex w-full items-center">
             {isSigningOut ? (
               <>
-                <Icons.loader className="mr-2 size-3.5 animate-spin" />
-                <span>Sign out</span>
+                <Icons.loader className="mr-2 size-3 animate-spin" />
+                <p className="text-sm text-secondary-foreground">Sign out</p>
               </>
             ) : (
               <>

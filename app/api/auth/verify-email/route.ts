@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { assignUserRole, createUser } from "@/lib/auth/user";
 import {
   doesEmailVerificationSessionExist,
-  getEmailVerificationSessionPayload,
+  getEmailVerificationSession,
   deleteEmailVerificationSession,
 } from "@/lib/auth/session";
 import { timingSafeCompare } from "@/lib/auth/utils";
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const authErrorUrl = new URL("/auth-error", url);
 
     const sessionExists = await doesEmailVerificationSessionExist();
-    const payload = await getEmailVerificationSessionPayload();
+    const payload = await getEmailVerificationSession();
 
     if (!tokenFromUrl || !sessionExists || !payload) {
       return NextResponse.redirect(authErrorUrl);
