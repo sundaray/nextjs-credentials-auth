@@ -57,8 +57,8 @@ export function UserAccountNavClient({ user }: UserAccountNavClientProps) {
               </>
             ) : (
               <>
-                <Icons.logOut className="mr-2 size-4 text-muted-foreground" />
-                <span className="font-medium">Sign out</span>
+                <Icons.logOut className="mr-2 size-3 text-muted-foreground" />
+                <p className="text-sm">Sign out</p>
               </>
             )}
           </button>
