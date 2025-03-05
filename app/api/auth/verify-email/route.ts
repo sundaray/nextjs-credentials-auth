@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
 
-import { assignUserRole } from "@/lib/assign-user-role";
-import { createUser } from "@/lib/create-user";
+import { assignUserRole, createUser } from "@/lib/auth/user";
 import {
   doesEmailVerificationSessionExist,
   getEmailVerificationSessionPayload,
   deleteEmailVerificationSession,
-} from "@/lib/session";
-import { timingSafeCompare } from "@/lib/timing-safe-compare";
+} from "@/lib/auth/session";
+import { timingSafeCompare } from "@/lib/auth/utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,8 +14,8 @@ export async function GET(request: NextRequest) {
     const tokenFromUrl = url.searchParams.get("token");
     const authErrorUrl = new URL("/auth-error", url);
 
-    const { sessionExists } = await doesEmailVerificationSessionExist();
-    const { payload } = await getEmailVerificationSessionPayload();
+    const sessionExists = await doesEmailVerificationSessionExist();
+    const payload = await getEmailVerificationSessionPayload();
 
     if (!tokenFromUrl || !sessionExists || !payload) {
       return NextResponse.redirect(authErrorUrl);
