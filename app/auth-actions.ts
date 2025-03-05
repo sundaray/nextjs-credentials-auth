@@ -89,7 +89,7 @@ export async function signInWithEmailAndPassword(
   } finally {
     if (!errorOccurred) {
       if (needsEmailVerification) {
-        redirect("/signin/verify-email");
+        redirect("/verify-email");
       } else {
         redirect(next);
       }

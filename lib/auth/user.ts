@@ -1,5 +1,6 @@
 import "server-only";
 
+import chalk from "chalk";
 import { supabase } from "@/lib/supabase";
 
 /************************************************
@@ -31,7 +32,7 @@ export async function createUser(
       .single();
 
     if (!data || error) {
-      console.error(`[createUser] error: `, error);
+      console.error(chalk.red("[createUser] error: "), error);
       throw new Error("Failed to create user.");
     }
     return data;
@@ -57,7 +58,7 @@ export async function getUserPassword(email: string): Promise<string> {
       .single();
 
     if (!data || error) {
-      console.error(`[getUserPassword] error: `, error);
+      console.error(chalk.red("[getUserPassword] error:"), error);
       throw new Error("Failed to get user password.");
     }
 
@@ -86,10 +87,9 @@ export async function getUserIdAndRole(
       .single();
 
     if (!data || error) {
-      console.error(`[getUserIdAndRole] error: `, error);
+      console.error(chalk.red("[getUserIdAndRole] error:"), error);
       throw new Error("Failed to get user id and role.");
     }
-
     return data;
   } catch (error) {
     const message =

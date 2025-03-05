@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 
-interface User {
-  userId: string;
+type User = {
+  id: string;
   name: string;
   email: string;
-  picture: string;
-}
+};
 
 export function useSession() {
   const [user, setUser] = useState<User | null>(null);
@@ -18,7 +17,7 @@ export function useSession() {
         const response = await fetch("/api/auth/session");
 
         if (!response.ok) {
-          throw new Error("Failed to fetch session");
+          throw new Error("Failed to get user session");
         }
         const { user } = await response.json();
         setUser(user);
@@ -27,7 +26,7 @@ export function useSession() {
           console.log("Failed to fetch session: ", error.message);
           setError(error);
         } else {
-          console.log("Unknown error type occurred:", error);
+          console.log("Unknown error:", error);
           setError(Error("An unknown error occurred"));
         }
       } finally {

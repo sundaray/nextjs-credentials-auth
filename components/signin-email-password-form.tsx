@@ -49,10 +49,10 @@ export function SignInEmailPasswordForm() {
 
   return (
     <div className="px-4 sm:mx-auto sm:max-w-sm">
-      <h2 className="mb-2 text-2xl font-semibold tracking-tight text-secondary-foreground">
+      <h2 className="text-2xl font-semibold tracking-tight text-secondary-foreground">
         Welcome back
       </h2>
-      <p className="mb-10 text-sm font-medium text-muted-foreground">
+      <p className="mb-8 text-sm text-muted-foreground">
         Sign in to your account
       </p>
 
