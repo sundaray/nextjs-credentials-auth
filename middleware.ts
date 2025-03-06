@@ -6,6 +6,9 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   // Define protected routes
   const privateRoutes = ["/admin"];
 
+  // Define authentication routes that signed-in users shouldn't access
+  const authRoutes = ["/signin", "/forgot-password", "/reset-password"];
+
   // Extract request information
   const { nextUrl } = request;
   const path = nextUrl.pathname;
@@ -20,11 +23,13 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     return NextResponse.redirect(signInUrl);
   }
 
-  // Redirect authenticated users attempting to access the sign-in page to the home page
-  if (user && path === "/signin") {
+  // Redirect authenticated users attempting to access auth pages to the home page
+  if (
+    user &&
+    authRoutes.some((route) => path === route || path.startsWith(`${route}/`))
+  ) {
     return NextResponse.redirect(new URL("/", nextUrl));
   }
-
   return NextResponse.next();
 }
 

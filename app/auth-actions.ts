@@ -62,6 +62,7 @@ export async function signInWithEmailAndPassword(
     return submission.reply();
   }
 
+  // Return rate limit error if any
   if (rateLimitResult.limited) {
     return submission.reply({
       formErrors: [rateLimitResult.message],
@@ -140,6 +141,12 @@ export async function signInWithEmailAndPassword(
 import { ForgotPasswordFormSchema } from "@/schema";
 
 export async function forgotPassword(prevState: unknown, formData: FormData) {
+  const headersList = await headers();
+  const clientIP = (await headersList).get("x-forwarded-for") ?? "127.0.0.1";
+
+  // check rate limit
+  const rateLimitResult = await authRateLimit(clientIP);
+
   // Parse and validate form data using zod schema
   const submission = parseWithZod(formData, {
     schema: ForgotPasswordFormSchema,
@@ -148,6 +155,13 @@ export async function forgotPassword(prevState: unknown, formData: FormData) {
   // Return validation errors if any
   if (submission.status !== "success") {
     return submission.reply();
+  }
+
+  // Return rate limit error if any
+  if (rateLimitResult.limited) {
+    return submission.reply({
+      formErrors: [rateLimitResult.message],
+    });
   }
 
   const email = submission.value.email;
@@ -191,6 +205,12 @@ export async function forgotPassword(prevState: unknown, formData: FormData) {
  ************************************************/
 
 export async function resetPassword(prevState: unknown, formData: FormData) {
+  const headersList = await headers();
+  const clientIP = (await headersList).get("x-forwarded-for") ?? "127.0.0.1";
+
+  // check rate limit
+  const rateLimitResult = await authRateLimit(clientIP);
+
   // Parse and validate form data using zod schema
   const submission = parseWithZod(formData, {
     schema: ResetPasswordFormSchema,
@@ -199,6 +219,13 @@ export async function resetPassword(prevState: unknown, formData: FormData) {
   // Return validation errors if any
   if (submission.status !== "success") {
     return submission.reply();
+  }
+
+  // Return rate limit error if any
+  if (rateLimitResult.limited) {
+    return submission.reply({
+      formErrors: [rateLimitResult.message],
+    });
   }
 
   // Extract validated password
