@@ -1,3 +1,5 @@
+import chalk from "chalk";
+
 /************************************************
  *
  * Create password reset verification token
@@ -36,13 +38,13 @@ export async function sendPasswordResetEmail(email: string, url: string) {
     const { data, error } = await resend.emails.send({
       from: process.env.EMAIL_FROM!,
       to: email,
-      subject: "Verify your email address",
+      subject: "Reset your password",
       react: PasswordResetTemplate({ url }),
     });
 
     if (error) {
-      console.error(`[sendPasswordResetEmail] error: `, error);
-      throw new Error("Failed to send password reset verification email.");
+      console.error(chalk.red("[sendPasswordResetEmail] error: "), error);
+      throw new Error("Failed to send password reset email.");
     }
   } catch (error) {
     const message =

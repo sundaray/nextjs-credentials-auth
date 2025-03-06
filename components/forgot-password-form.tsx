@@ -60,6 +60,9 @@ export function ForgotPasswordForm() {
               defaultValue={lastResult?.initialValue?.email as string}
               placeholder="you@example.com"
             />
+            <div className="duration-800 text-sm text-red-600 ease-out animate-in fade-in-0 slide-in-from-bottom-1">
+              {fields.email.errors}
+            </div>
           </div>
           <Button type="submit" disabled={isPending}>
             {isPending ? (
