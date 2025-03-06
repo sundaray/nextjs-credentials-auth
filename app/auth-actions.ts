@@ -1,5 +1,7 @@
 "use server";
 
+import { headers } from "next/headers";
+import { authRateLimit } from "@/lib/rate-limit";
 import chalk from "chalk";
 import { redirect } from "next/navigation";
 import { parseWithZod } from "@conform-to/zod";
@@ -44,6 +46,12 @@ export async function signInWithEmailAndPassword(
   prevState: unknown,
   formData: FormData,
 ) {
+  const headersList = await headers();
+  const clientIP = (await headersList).get("x-forwarded-for") ?? "127.0.0.1";
+
+  // check rate limit
+  const rateLimitResult = await authRateLimit(clientIP);
+
   // Parse and validate form data using zod schema
   const submission = parseWithZod(formData, {
     schema: SignInEmailPasswordFormSchema,
@@ -52,6 +60,12 @@ export async function signInWithEmailAndPassword(
   // Return validation errors if any
   if (submission.status !== "success") {
     return submission.reply();
+  }
+
+  if (rateLimitResult.limited) {
+    return submission.reply({
+      formErrors: [rateLimitResult.message],
+    });
   }
 
   // Extract validated email and password
