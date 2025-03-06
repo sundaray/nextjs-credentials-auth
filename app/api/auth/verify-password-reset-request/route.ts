@@ -13,13 +13,13 @@ export async function GET(request: NextRequest) {
     const authErrorUrl = new URL("/verify-password-reset-request-error", url);
 
     const sessionExists = await doesPasswordResetSessionExist();
-    const payload = await getPasswordResetSession();
+    const sessionData = await getPasswordResetSession();
 
-    if (!tokenFromUrl || !sessionExists || !payload) {
+    if (!tokenFromUrl || !sessionExists || !sessionData) {
       return NextResponse.redirect(authErrorUrl);
     }
 
-    const { token: tokenFromSession } = payload;
+    const { token: tokenFromSession } = sessionData;
 
     if (!timingSafeCompare(tokenFromUrl, tokenFromSession)) {
       return NextResponse.redirect(authErrorUrl);

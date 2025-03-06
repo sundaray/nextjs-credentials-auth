@@ -9,8 +9,8 @@ export default function VerifyPasswordResetRequestError() {
         Password Reset Request Verification Failed
       </h2>
       <p className="mb-4 text-pretty text-sm text-muted-foreground">
-        Something went wrong while verifying your email. Please try again or
-        request a new verification link.
+        Something went wrong while verifying your password reset request. Please
+        try again or request a new password reset link.
       </p>
       <Link
         href="/signin"

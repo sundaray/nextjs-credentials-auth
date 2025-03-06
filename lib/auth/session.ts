@@ -217,21 +217,6 @@ export async function doesPasswordResetSessionExist(): Promise<boolean> {
 
 /************************************************
  *
- * Delete password reset session
- *
- ************************************************/
-
-export async function deletePasswordResetSession() {
-  try {
-    const cookieStore = await cookies();
-    cookieStore.delete("password-reset-session");
-  } catch (error) {
-    throw Error("Failed to delete password reset session.");
-  }
-}
-
-/************************************************
- *
  * Get password reset session
  *
  ************************************************/
@@ -243,15 +228,30 @@ type PasswordResetSession = {
 export async function getPasswordResetSession(): Promise<PasswordResetSession> {
   try {
     const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("email-verification-session");
+    const sessionCookie = cookieStore.get("password-reset-session");
 
     if (!sessionCookie) {
       throw new Error("Failed to get password reset session");
     }
 
-    return await decrypt<EmailVerificationSession>(sessionCookie.value);
+    return await decrypt<PasswordResetSession>(sessionCookie.value);
   } catch (error) {
     throw Error("Failed to get password reset session");
+  }
+}
+
+/************************************************
+ *
+ * Delete password reset session
+ *
+ ************************************************/
+
+export async function deletePasswordResetSession() {
+  try {
+    const cookieStore = await cookies();
+    cookieStore.delete("password-reset-session");
+  } catch (error) {
+    throw Error("Failed to delete password reset session.");
   }
 }
 
