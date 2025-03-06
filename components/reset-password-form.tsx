@@ -111,8 +111,15 @@ export function ResetPasswordForm() {
             />
           </div>
 
-          <Button type="submit" className="w-full">
-            Reset password
+          <Button type="submit" disabled={isPending}>
+            {isPending ? (
+              <>
+                <Icons.loader className="size-3 animate-spin" />
+                Resetting...
+              </>
+            ) : (
+              "Reset password"
+            )}
           </Button>
         </div>
       </form>

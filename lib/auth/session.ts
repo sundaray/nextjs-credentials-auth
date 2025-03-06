@@ -198,6 +198,35 @@ export async function getEmailVerificationSession(): Promise<EmailVerificationSe
     throw Error("Failed to get email verification session payload");
   }
 }
+
+/************************************************
+ *
+ * Create password reset session
+ *
+ ************************************************/
+export async function createPasswordResetSession(email: string, token: string) {
+  try {
+    const sessionData = await encrypt({
+      email,
+      token,
+    });
+
+    const cookieStore = await cookies();
+
+    cookieStore.set({
+      name: "password-reset-session",
+      value: sessionData,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60, // 1 hour in seconds
+      sameSite: "lax",
+      path: "/",
+    });
+  } catch (error) {
+    throw new Error("Failed to create password reset session.");
+  }
+}
+
 /************************************************
  *
  * Check if password reset session exists
@@ -237,6 +266,34 @@ export async function getPasswordResetSession(): Promise<PasswordResetSession> {
     return await decrypt<PasswordResetSession>(sessionCookie.value);
   } catch (error) {
     throw Error("Failed to get password reset session");
+  }
+}
+
+/************************************************
+ *
+ * Update password reset session
+ *
+ ************************************************/
+export async function updatePasswordResetSession(email: string, token: string) {
+  try {
+    const sessionData = await encrypt({
+      email,
+      token,
+    });
+
+    const cookieStore = await cookies();
+
+    cookieStore.set({
+      name: "password-reset-session",
+      value: sessionData,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60, // 1 hour in seconds
+      sameSite: "lax",
+      path: "/",
+    });
+  } catch (error) {
+    throw Error("Failed to update password reset session.");
   }
 }
 

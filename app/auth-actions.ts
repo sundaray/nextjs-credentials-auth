@@ -9,15 +9,28 @@ import {
   createUserSession,
   deleteUserSession,
   createEmailVerificationSession,
+  createPasswordResetSession,
   updateEmailVerificationSession,
+  updatePasswordResetSession,
   doesEmailVerificationSessionExist,
+  doesPasswordResetSessionExist,
+  getPasswordResetSession,
+  deletePasswordResetSession,
 } from "@/lib/auth/session";
+import { updatePassword } from "@/lib/auth/user";
+import { ResetPasswordFormSchema } from "@/schema";
+
 import {
   isEmailVerified,
   createEmailVerificationToken,
   createEmailVerificationURL,
   sendVerificationEmail,
 } from "@/lib/auth/email-verification";
+import {
+  createPasswordResetToken,
+  createPasswordResetURL,
+  sendPasswordResetEmail,
+} from "@/lib/auth/password-reset";
 import { SignInEmailPasswordFormSchema } from "@/schema";
 
 /************************************************
@@ -55,9 +68,6 @@ export async function signInWithEmailAndPassword(
 
     if (emailVerified) {
       const passwordVerified = await verifyPassword(email, password);
-
-      console.log("Server Action Password Verified: ", passwordVerified);
-      console.log(typeof passwordVerified);
 
       if (passwordVerified) {
         const { id, role } = await getUserIdAndRole(email);
@@ -109,17 +119,71 @@ export async function signInWithEmailAndPassword(
 
 /************************************************
  *
+ * Forgot user password
+ *
+ ************************************************/
+
+import { ForgotPasswordFormSchema } from "@/schema";
+
+export async function forgotPassword(prevState: unknown, formData: FormData) {
+  // Parse and validate form data using zod schema
+  const submission = parseWithZod(formData, {
+    schema: ForgotPasswordFormSchema,
+  });
+
+  // Return validation errors if any
+  if (submission.status !== "success") {
+    return submission.reply();
+  }
+
+  const email = submission.value.email;
+
+  let errorOccurred = false;
+
+  try {
+    const token = createPasswordResetToken();
+
+    const url = createPasswordResetURL(token);
+
+    const sessionExists = await doesPasswordResetSessionExist();
+
+    if (sessionExists) {
+      await updatePasswordResetSession(email, token);
+    } else {
+      await createPasswordResetSession(email, token);
+    }
+    await sendPasswordResetEmail(email, url);
+
+    if (!sessionExists) {
+      errorOccurred = true;
+      return submission.reply({
+        formErrors: [
+          "Your password reset session has expired. Please request a new password reset link.",
+        ],
+      });
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(chalk.red("[resetPassword] error: "), error.message);
+    } else {
+      console.error(chalk.red("[resetPassword] error: "), error);
+    }
+    errorOccurred = true;
+    return submission.reply({
+      formErrors: ["Something went wrong. Please try again."],
+    });
+  } finally {
+    if (!errorOccurred) {
+      // Redirect to success page if no errors occurred
+      redirect("/password-reset");
+    }
+  }
+}
+/************************************************
+ *
  * Reset user password
  *
  ************************************************/
-import {
-  doesPasswordResetSessionExist,
-  getPasswordResetSession,
-  deletePasswordResetSession,
-} from "@/lib/auth/session";
-
-import { updatePassword } from "@/lib/auth/user";
-import { ResetPasswordFormSchema } from "@/schema";
 
 export async function resetPassword(prevState: unknown, formData: FormData) {
   // Parse and validate form data using zod schema

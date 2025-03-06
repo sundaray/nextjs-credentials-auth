@@ -27,10 +27,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.redirect(new URL("/reset-password", url));
   } catch (error) {
-    const authErrorUrl = new URL(
-      "/verify-password-reset-request-error",
-      request.nextUrl,
-    );
+    const authErrorUrl = new URL("/password-reset-error", request.nextUrl);
     return NextResponse.redirect(authErrorUrl);
   }
 }
