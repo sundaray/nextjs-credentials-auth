@@ -1,3 +1,6 @@
+import "server-only";
+
+import chalk from "chalk";
 import { supabase } from "@/lib/supabase";
 
 /************************************************
@@ -15,7 +18,7 @@ export async function isEmailVerified(email: string): Promise<boolean> {
       .maybeSingle();
 
     if (error) {
-      console.error(`[isEmailVerified] error: `, error);
+      console.error(chalk.red("[isEmailVerified] error: "), error);
       throw new Error("Failed to verify email.");
     }
 
@@ -31,7 +34,7 @@ export async function isEmailVerified(email: string): Promise<boolean> {
 
 /************************************************
  *
- * Check email verification token
+ * Create email verification token
  *
  ************************************************/
 import { base64url } from "jose";
@@ -45,7 +48,7 @@ export function createEmailVerificationToken(): string {
 
 /************************************************
  *
- * Check email verification URL
+ * Create email verification URL
  *
  ************************************************/
 export function createEmailVerificationURL(token: string): string {
@@ -72,7 +75,7 @@ export async function sendVerificationEmail(email: string, url: string) {
     });
 
     if (error) {
-      console.error(`[sendVerificationEmail] error: `, error);
+      console.error(chalk.red("[sendVerificationEmail] error: "), error);
       throw new Error("Failed to send verification email.");
     }
   } catch (error) {

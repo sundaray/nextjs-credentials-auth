@@ -1,5 +1,6 @@
 import "server-only";
 
+import chalk from "chalk";
 import { hash, verify } from "@node-rs/argon2";
 import { getUserPassword } from "@/lib/auth/user";
 
@@ -12,7 +13,7 @@ export async function hashPassword(password: string): Promise<string> {
   try {
     return await hash(password);
   } catch (error) {
-    console.error(`[hashPassword] error: `, error);
+    console.error(chalk.red("[hashPassword] error: "), error);
     throw new Error("Failed to hash password.");
   }
 }
