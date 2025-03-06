@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   doesPasswordResetSessionExist,
   getPasswordResetSession,
-  deleteEmailVerificationSession,
 } from "@/lib/auth/session";
 import { timingSafeCompare } from "@/lib/auth/utils";
 

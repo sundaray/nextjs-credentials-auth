@@ -76,6 +76,32 @@ export async function getUserPassword(email: string): Promise<string> {
 
 /************************************************
  *
+ * Update user password
+ *
+ ************************************************/
+export async function updatePassword(
+  email: string,
+  hashedPassword: string,
+): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("users")
+      .update({ password: hashedPassword })
+      .eq("email", email);
+
+    if (error) {
+      console.error(chalk.red("[updatePassword] error:"), error);
+      throw new Error("Failed to update user password.");
+    }
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : `Unknown error: ${error}`;
+    throw new Error(message);
+  }
+}
+
+/************************************************
+ *
  * Get user id and role
  *
  ************************************************/

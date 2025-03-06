@@ -1,5 +1,6 @@
 "use server";
 
+import chalk from "chalk";
 import { redirect } from "next/navigation";
 import { parseWithZod } from "@conform-to/zod";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
@@ -20,7 +21,9 @@ import {
 import { SignInEmailPasswordFormSchema } from "@/schema";
 
 /************************************************
+ *
  * Sign In With Email and Password
+ *
  ************************************************/
 
 export async function signInWithEmailAndPassword(
@@ -105,7 +108,80 @@ export async function signInWithEmailAndPassword(
 }
 
 /************************************************
+ *
+ * Reset user password
+ *
+ ************************************************/
+import {
+  doesPasswordResetSessionExist,
+  getPasswordResetSession,
+  deletePasswordResetSession,
+} from "@/lib/auth/session";
+
+import { updatePassword } from "@/lib/auth/user";
+import { ResetPasswordFormSchema } from "@/schema";
+
+export async function resetPassword(prevState: unknown, formData: FormData) {
+  // Parse and validate form data using zod schema
+  const submission = parseWithZod(formData, {
+    schema: ResetPasswordFormSchema,
+  });
+
+  // Return validation errors if any
+  if (submission.status !== "success") {
+    return submission.reply();
+  }
+
+  // Extract validated password
+  const newPassword = submission.value.newPassword;
+
+  let errorOccurred = false;
+
+  try {
+    // Verify that there's an active password reset session
+    const sessionExists = await doesPasswordResetSessionExist();
+    if (!sessionExists) {
+      errorOccurred = true;
+      return submission.reply({
+        formErrors: [
+          "Your password reset session has expired. Please request a new password reset link.",
+        ],
+      });
+    }
+
+    // Get email from the password reset session
+    const { email } = await getPasswordResetSession();
+
+    // Hash the new password
+    const hashedPassword = await hashPassword(newPassword);
+
+    // Update the password in the database
+    await updatePassword(email, hashedPassword);
+
+    // Delete the password reset session
+    await deletePasswordResetSession();
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(chalk.red("[resetPassword] error: "), error.message);
+    } else {
+      console.error(chalk.red("[resetPassword] error: "), error);
+    }
+    errorOccurred = true;
+    return submission.reply({
+      formErrors: ["Something went wrong. Please try again."],
+    });
+  } finally {
+    if (!errorOccurred) {
+      // Redirect to success page if no errors occurred
+      redirect("/password-updated");
+    }
+  }
+}
+
+/************************************************
+ *
  * Sign out
+ *
  ************************************************/
 
 export async function signOut() {
