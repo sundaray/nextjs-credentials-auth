@@ -173,7 +173,7 @@ export async function resetPassword(prevState: unknown, formData: FormData) {
   } finally {
     if (!errorOccurred) {
       // Redirect to success page if no errors occurred
-      redirect("/password-updated");
+      redirect("/password-reset");
     }
   }
 }

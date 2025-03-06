@@ -1,16 +1,15 @@
 import Link from "next/link";
-
 import { Icons } from "@/components/icons";
 
-export default function EmailVerified() {
+export default function PasswordReset() {
   return (
     <div className="mx-auto max-w-md px-4 text-center">
-      <h2 className="mb-2 text-2xl font-semibold tracking-tight text-secondary-foreground">
-        Password updated
+      <h2 className="mb-2 text-2xl font-semibold tracking-tight text-green-600">
+        Password reset
       </h2>
       <p className="mb-4 text-pretty text-sm text-muted-foreground">
-        Your password has been successfully updated. You can now sign in to your
-        account with the updated password.
+        Your password has been successfully reset. You can now sign in with your
+        updated password.
       </p>
       <Link
         href="/signin"
