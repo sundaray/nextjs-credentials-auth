@@ -41,7 +41,7 @@ export function ResetPasswordForm() {
         Reset password
       </h2>
       <p className="mb-8 text-sm text-muted-foreground">
-        Enter a new password below:
+        Enter a new password below
       </p>
 
       <form
@@ -50,6 +50,11 @@ export function ResetPasswordForm() {
         action={formAction}
         noValidate
       >
+        {form.errors && (
+          <div className="duration-800 text-pretty py-4 text-sm text-red-600 ease-out animate-in fade-in-0 slide-in-from-bottom-1">
+            {form.errors}
+          </div>
+        )}
         <div className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="newPassword">New password</Label>
