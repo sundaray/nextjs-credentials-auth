@@ -2,11 +2,11 @@ import Link from "next/link";
 
 import { Icons } from "@/components/icons";
 
-export default function VerifyPasswordResetRequestError() {
+export default function VerifyPasswordResetError() {
   return (
     <div className="mx-auto max-w-md px-4 text-center">
       <h2 className="mb-2 text-xl font-semibold tracking-tight text-red-600">
-        Password Reset Request Verification Failed
+        Password reset verification failed
       </h2>
       <p className="mb-4 text-pretty text-sm text-muted-foreground">
         Something went wrong while verifying your password reset request. Please

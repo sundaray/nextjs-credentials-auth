@@ -37,6 +37,11 @@ export function ForgotPasswordForm() {
       <p className="mb-8 text-sm text-muted-foreground">
         Enter your email to request a password reset link
       </p>
+      {form.errors && (
+        <div className="duration-800 text-pretty py-4 text-sm text-red-600 ease-out animate-in fade-in-0 slide-in-from-bottom-1">
+          {form.errors}
+        </div>
+      )}
       <form
         id={form.id}
         onSubmit={form.onSubmit}

@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   try {
     const url = request.nextUrl;
     const tokenFromUrl = url.searchParams.get("token");
-    const authErrorUrl = new URL("/verify-password-reset-request-error", url);
+    const authErrorUrl = new URL("/verify-password-reset-error", url);
 
     const sessionExists = await doesPasswordResetSessionExist();
     const sessionData = await getPasswordResetSession();
@@ -27,7 +27,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.redirect(new URL("/reset-password", url));
   } catch (error) {
-    const authErrorUrl = new URL("/password-reset-error", request.nextUrl);
+    const authErrorUrl = new URL(
+      "/verify-password-reset-error",
+      request.nextUrl,
+    );
     return NextResponse.redirect(authErrorUrl);
   }
 }

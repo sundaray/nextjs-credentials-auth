@@ -153,15 +153,6 @@ export async function forgotPassword(prevState: unknown, formData: FormData) {
       await createPasswordResetSession(email, token);
     }
     await sendPasswordResetEmail(email, url);
-
-    if (!sessionExists) {
-      errorOccurred = true;
-      return submission.reply({
-        formErrors: [
-          "Your password reset session has expired. Please request a new password reset link.",
-        ],
-      });
-    }
   } catch (error) {
     if (error instanceof Error) {
       console.error(chalk.red("[resetPassword] error: "), error.message);
@@ -175,7 +166,7 @@ export async function forgotPassword(prevState: unknown, formData: FormData) {
   } finally {
     if (!errorOccurred) {
       // Redirect to success page if no errors occurred
-      redirect("/password-reset");
+      redirect("/verify-password-reset");
     }
   }
 }
