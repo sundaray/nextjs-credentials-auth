@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/icons";
+import { ErrorMessage } from "@/components/error-message";
 
 import { signInWithEmailAndPassword } from "@/app/auth-actions";
 import { SignInEmailPasswordFormSchema } from "@/schema";
@@ -41,6 +42,9 @@ export function SignInEmailPasswordForm() {
     },
   });
 
+  console.log("Field Errors: ", fields.password.errors);
+  console.log("Field Errors: ", fields.email.errors);
+
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   function togglePasswordVisibility() {
@@ -61,13 +65,10 @@ export function SignInEmailPasswordForm() {
         onSubmit={form.onSubmit}
         action={formAction}
         noValidate
+        aria-describedby={form.errors ? "form-error" : undefined}
       >
-        {form.errors && (
-          <div className="duration-800 text-pretty py-4 text-sm text-red-600 ease-out animate-in fade-in-0 slide-in-from-bottom-1">
-            {form.errors}
-          </div>
-        )}
-        <div className="grid gap-4">
+        {form.errors && <ErrorMessage id="form-error" errors={form.errors} />}
+        <div className="mt-4 grid gap-2">
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -76,10 +77,10 @@ export function SignInEmailPasswordForm() {
               name="email"
               defaultValue={lastResult?.initialValue?.email as string}
               placeholder="you@example.com"
+              aria-invalid={fields.email.errors ? "true" : undefined}
+              aria-describedby={fields.email.errors ? "email-error" : undefined}
             />
-            <div className="duration-800 text-sm text-red-600 ease-out animate-in fade-in-0 slide-in-from-bottom-1">
-              {fields.email.errors}
-            </div>
+            <ErrorMessage id="email-error" errors={fields.email.errors} />
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
@@ -99,6 +100,10 @@ export function SignInEmailPasswordForm() {
                 type={isPasswordVisible ? "text" : "password"}
                 name="password"
                 defaultValue={lastResult?.initialValue?.password as string}
+                aria-invalid={fields.password.errors ? "true" : undefined}
+                aria-describedby={
+                  fields.password.errors ? "password-error" : undefined
+                }
               />
               <button
                 type="button"
@@ -116,25 +121,7 @@ export function SignInEmailPasswordForm() {
                 )}
               </button>
             </div>
-            {fields.password.errors && (
-              <div className="duration-800 text-sm text-red-600 ease-out animate-in fade-in-0 slide-in-from-bottom-1">
-                {fields.password.errors.length === 1 &&
-                fields.password.errors[0] === "Password is required" ? (
-                  <p>Password is required</p>
-                ) : (
-                  <>
-                    <p>Password must:</p>
-                    <ul className="ml-2">
-                      {fields.password.errors
-                        .filter((error) => error !== "Password is required")
-                        .map((error) => (
-                          <li key={error}>- {error}</li>
-                        ))}
-                    </ul>
-                  </>
-                )}
-              </div>
-            )}
+            <ErrorMessage id="password-error" errors={fields.password.errors} />
           </div>
           <Button type="submit" disabled={isPending}>
             {isPending ? (

@@ -9,7 +9,7 @@ export function EmailVerificationTemplate({ url }: { url: string }) {
   return (
     <Html>
       <Tailwind>
-        <Text className="text-base font-medium text-gray-900">Hey,</Text>
+        <Text className="text-base font-medium text-gray-900">Hi,</Text>
         <Text className="text-base font-medium text-gray-900">
           Click the buttton below to verify your email:
         </Text>

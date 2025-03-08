@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/icons";
+import { ErrorMessage } from "@/components/error-message";
 import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
 import { ForgotPasswordFormSchema } from "@/schema";
@@ -48,7 +49,7 @@ export function ForgotPasswordForm() {
         action={formAction}
         noValidate
       >
-        <div className="grid gap-4">
+        <div className="grid gap-2">
           <div className="grid gap-2">
             <Label htmlFor="email" className="text-gray-700">
               Email
@@ -59,11 +60,12 @@ export function ForgotPasswordForm() {
               name="email"
               defaultValue={lastResult?.initialValue?.email as string}
               placeholder="you@example.com"
+              aria-invalid={fields.email.errors ? "true" : undefined}
+              aria-describedby={fields.email.errors ? "email-error" : undefined}
             />
-            <div className="duration-800 text-sm text-red-600 ease-out animate-in fade-in-0 slide-in-from-bottom-1">
-              {fields.email.errors}
-            </div>
-          </div>
+            <ErrorMessage id="email-error" errors={fields.email.errors} />
+          </div>{" "}
+          {/* This closing div tag was missing */}
           <Button type="submit" disabled={isPending}>
             {isPending ? (
               <>

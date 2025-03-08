@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Icons } from "@/components/icons";
+import { ErrorMessage } from "@/components/error-message";
 import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
 import { ResetPasswordFormSchema } from "@/schema";
@@ -50,12 +51,9 @@ export function ResetPasswordForm() {
         action={formAction}
         noValidate
       >
-        {form.errors && (
-          <div className="duration-800 text-pretty py-4 text-sm text-red-600 ease-out animate-in fade-in-0 slide-in-from-bottom-1">
-            {form.errors}
-          </div>
-        )}
-        <div className="grid gap-4">
+        {form.errors && <ErrorMessage id="form-error" errors={form.errors} />}
+
+        <div className="mt-4 grid gap-2">
           <div className="grid gap-2">
             <Label htmlFor="newPassword">New password</Label>
             <div className="relative">
@@ -64,6 +62,10 @@ export function ResetPasswordForm() {
                 type={isPasswordVisible ? "text" : "password"}
                 name="newPassword"
                 defaultValue={lastResult?.initialValue?.password as string}
+                aria-invalid={fields.newPassword.errors ? "true" : undefined}
+                aria-describedby={
+                  fields.newPassword.errors ? "new-password-error" : undefined
+                }
               />
               <button
                 type="button"
@@ -81,25 +83,10 @@ export function ResetPasswordForm() {
                 )}
               </button>
             </div>
-            {fields.newPassword.errors && (
-              <div className="duration-800 text-sm text-red-600 ease-out animate-in fade-in-0 slide-in-from-bottom-1">
-                {fields.newPassword.errors.length === 1 &&
-                fields.newPassword.errors[0] === "Password is required" ? (
-                  <p>Password is required</p>
-                ) : (
-                  <>
-                    <p>Password must:</p>
-                    <ul className="ml-2">
-                      {fields.newPassword.errors
-                        .filter((error) => error !== "Password is required")
-                        .map((error) => (
-                          <li key={error}>- {error}</li>
-                        ))}
-                    </ul>
-                  </>
-                )}
-              </div>
-            )}
+            <ErrorMessage
+              id="new-password-error"
+              errors={fields.newPassword.errors}
+            />
           </div>
 
           <div className="grid gap-2">
@@ -108,10 +95,19 @@ export function ResetPasswordForm() {
               id="confirmNewPassword"
               type="password"
               name="confirmNewPassword"
+              aria-invalid={
+                fields.confirmNewPassword.errors ? "true" : undefined
+              }
+              aria-describedby={
+                fields.confirmNewPassword.errors
+                  ? "confirm-new-password-error"
+                  : undefined
+              }
             />
-            <div className="duration-800 text-sm text-red-600 ease-out animate-in fade-in-0 slide-in-from-bottom-1">
-              {fields.confirmNewPassword.errors}
-            </div>
+            <ErrorMessage
+              id="confirm-new-password-error"
+              errors={fields.confirmNewPassword.errors}
+            />
           </div>
           <Button type="submit" disabled={isPending}>
             {isPending ? (

@@ -69,7 +69,6 @@ export async function createUserSession(
       path: "/",
     });
 
-    console.log("User session created");
   } catch (error) {
     throw new Error("Failed to create user session.");
   }
