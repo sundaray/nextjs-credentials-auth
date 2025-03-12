@@ -1,8 +1,9 @@
 import "server-only";
+import { supabase } from "@/lib/supabase";
 
 import chalk from "chalk";
 import { hash, verify } from "@node-rs/argon2";
-import { getUserPassword } from "@/lib/auth/user";
+// import { getUserPassword } from "@/lib/auth/user";
 
 /************************************************
  *
@@ -29,7 +30,18 @@ export async function verifyPassword(
   password: string,
 ): Promise<boolean> {
   try {
-    const hashedPassword = await getUserPassword(email);
+    const { data, error } = await supabase
+      .from("users")
+      .select("password")
+      .eq("email", email)
+      .single();
+
+    if (error) {
+      console.error(chalk.red("[verifyPassword] error: "), error);
+      throw new Error("Failed to verify password.");
+    }
+
+    const hashedPassword = data.password;
     return await verify(hashedPassword, password);
   } catch (error) {
     const message =

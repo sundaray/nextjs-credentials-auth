@@ -24,7 +24,7 @@ export async function isEmailVerified(email: string): Promise<boolean> {
 
     // If data is null (no user found), return false
     // Otherwise, return the value of emailVerified
-    return data ? !!data.emailVerified : false;
+    return data ? data.emailVerified : false;
   } catch (error) {
     const message =
       error instanceof Error ? error.message : `Unknown error: ${error}`;
