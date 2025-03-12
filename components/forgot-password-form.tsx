@@ -38,11 +38,7 @@ export function ForgotPasswordForm() {
       <p className="mb-8 text-sm text-muted-foreground">
         Enter your email to request a password reset link
       </p>
-      {form.errors && (
-        <div className="duration-800 text-pretty py-4 text-sm text-red-600 ease-out animate-in fade-in-0 slide-in-from-bottom-1">
-          {form.errors}
-        </div>
-      )}
+      {form.errors && <ErrorMessage id="form-error" errors={form.errors} />}
       <form
         id={form.id}
         onSubmit={form.onSubmit}
@@ -51,9 +47,7 @@ export function ForgotPasswordForm() {
       >
         <div className="grid gap-2">
           <div className="grid gap-2">
-            <Label htmlFor="email" className="text-gray-700">
-              Email
-            </Label>
+            <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
@@ -65,7 +59,6 @@ export function ForgotPasswordForm() {
             />
             <ErrorMessage id="email-error" errors={fields.email.errors} />
           </div>{" "}
-          {/* This closing div tag was missing */}
           <Button type="submit" disabled={isPending}>
             {isPending ? (
               <>

@@ -1,11 +1,6 @@
 import "server-only";
 import { timingSafeEqual } from "node:crypto";
 
-/**
- *
- * Compares two strings in constant time to prevent timing attacks
- *
- */
 export function timingSafeCompare(a: string, b: string): boolean {
   if (typeof a !== "string" || typeof b !== "string") {
     return false;

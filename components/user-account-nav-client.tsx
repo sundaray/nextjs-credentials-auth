@@ -14,7 +14,11 @@ import { Icons } from "@/components/icons";
 import { signOut } from "@/app/auth-actions";
 
 type UserAccountNavClientProps = {
-  user: User;
+  user: {
+    id: string;
+    email: string;
+    role: string;
+  };
 };
 
 export function UserAccountNavClient({ user }: UserAccountNavClientProps) {

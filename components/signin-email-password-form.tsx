@@ -42,9 +42,6 @@ export function SignInEmailPasswordForm() {
     },
   });
 
-  console.log("Field Errors: ", fields.password.errors);
-  console.log("Field Errors: ", fields.email.errors);
-
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   function togglePasswordVisibility() {

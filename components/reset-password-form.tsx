@@ -30,10 +30,16 @@ export function ResetPasswordForm() {
     },
   });
 
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isNewPasswordVisible, setIsNewPasswordVisible] = useState(false);
+  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
+    useState(false);
 
-  function togglePasswordVisibility() {
-    setIsPasswordVisible((prevState) => !prevState);
+  function toggleNewPasswordVisibility() {
+    setIsNewPasswordVisible((prevState) => !prevState);
+  }
+
+  function toggleConfirmPasswordVisibility() {
+    setIsConfirmPasswordVisible((prevState) => !prevState);
   }
 
   return (
@@ -59,9 +65,9 @@ export function ResetPasswordForm() {
             <div className="relative">
               <Input
                 id="newPassword"
-                type={isPasswordVisible ? "text" : "password"}
+                type={isNewPasswordVisible ? "text" : "password"}
                 name="newPassword"
-                defaultValue={lastResult?.initialValue?.password as string}
+                defaultValue={lastResult?.initialValue?.newPassword as string}
                 aria-invalid={fields.newPassword.errors ? "true" : undefined}
                 aria-describedby={
                   fields.newPassword.errors ? "new-password-error" : undefined
@@ -69,14 +75,14 @@ export function ResetPasswordForm() {
               />
               <button
                 type="button"
-                onClick={togglePasswordVisibility}
+                onClick={toggleNewPasswordVisibility}
                 aria-label={
-                  isPasswordVisible ? "Hide password" : "Show password"
+                  isNewPasswordVisible ? "Hide password" : "Show password"
                 }
-                aria-pressed={isPasswordVisible}
+                aria-pressed={isNewPasswordVisible}
                 className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg text-muted-foreground outline-offset-0 transition-colors hover:text-foreground focus:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isPasswordVisible ? (
+                {isNewPasswordVisible ? (
                   <Icons.eyeOff size={16} strokeWidth={2} aria-hidden="true" />
                 ) : (
                   <Icons.eye size={16} strokeWidth={2} aria-hidden="true" />
@@ -91,19 +97,39 @@ export function ResetPasswordForm() {
 
           <div className="grid gap-2">
             <Label htmlFor="confirmNewPassword">Confirm new password</Label>
-            <Input
-              id="confirmNewPassword"
-              type="password"
-              name="confirmNewPassword"
-              aria-invalid={
-                fields.confirmNewPassword.errors ? "true" : undefined
-              }
-              aria-describedby={
-                fields.confirmNewPassword.errors
-                  ? "confirm-new-password-error"
-                  : undefined
-              }
-            />
+            <div className="relative">
+              <Input
+                id="confirmNewPassword"
+                type={isConfirmPasswordVisible ? "text" : "password"}
+                name="confirmNewPassword"
+                defaultValue={
+                  lastResult?.initialValue?.confirmNewPassword as string
+                }
+                aria-invalid={
+                  fields.confirmNewPassword.errors ? "true" : undefined
+                }
+                aria-describedby={
+                  fields.confirmNewPassword.errors
+                    ? "confirm-new-password-error"
+                    : undefined
+                }
+              />
+              <button
+                type="button"
+                onClick={toggleConfirmPasswordVisibility}
+                aria-label={
+                  isConfirmPasswordVisible ? "Hide password" : "Show password"
+                }
+                aria-pressed={isConfirmPasswordVisible}
+                className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg text-muted-foreground outline-offset-0 transition-colors hover:text-foreground focus:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isConfirmPasswordVisible ? (
+                  <Icons.eyeOff size={16} strokeWidth={2} aria-hidden="true" />
+                ) : (
+                  <Icons.eye size={16} strokeWidth={2} aria-hidden="true" />
+                )}
+              </button>
+            </div>
             <ErrorMessage
               id="confirm-new-password-error"
               errors={fields.confirmNewPassword.errors}

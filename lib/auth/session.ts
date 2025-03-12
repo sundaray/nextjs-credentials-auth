@@ -68,7 +68,6 @@ export async function createUserSession(
       sameSite: "lax",
       path: "/",
     });
-
   } catch (error) {
     throw new Error("Failed to create user session.");
   }
@@ -149,9 +148,8 @@ export async function updateEmailVerificationSession(
 export async function doesEmailVerificationSessionExist(): Promise<boolean> {
   try {
     const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("email-verification-session");
-
-    return !!sessionCookie;
+    const hasCookie = cookieStore.has("email-verification-session");
+    return hasCookie;
   } catch (error) {
     throw Error("Failed to check email verification session");
   }
